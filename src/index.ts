@@ -1,26 +1,23 @@
 import "reflect-metadata";
-import express from "express";
 import cors from "cors";
-import { buildTypeDefsAndResolvers } from "type-graphql";
-import { expressMiddleware } from "@apollo/server/express4";
-import { ApolloServer } from "@apollo/server";
+import * as dotenv from "dotenv";
 import http from "http";
-import { json } from "body-parser";
+import express, { json } from "express";
+import cookieParser from "cookie-parser";
+import { ApolloServer } from "@apollo/server";
+import { buildTypeDefsAndResolvers } from "type-graphql/dist/utils/buildTypeDefsAndResolvers";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import { expressMiddleware } from "@apollo/server/express4";
 
-import { ResolverUser } from "./models/User/ResolverUser";
-import { AppDataSource } from "./db";
+import { ResolverUser } from "./resolvers";
+import deserializeUser from "./middleware/deserializeUser";
+import { AppDataSource } from "./utils";
+
+dotenv.config();
 
 (async (): Promise<void> => {
   const app = express();
   const httpServer = http.createServer(app);
-
-  AppDataSource.initialize()
-    .then(() => {
-      console.log("Data Source has been initialized!");
-    })
-    .catch((err) => {
-      console.error("Error during Data Source initialization: ", err);
-    });
 
   const { typeDefs, resolvers } = await buildTypeDefsAndResolvers({
     resolvers: [ResolverUser],
@@ -29,20 +26,33 @@ import { AppDataSource } from "./db";
   const server = new ApolloServer({
     typeDefs,
     resolvers,
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   });
 
   await server.start();
+
   app.use(
     "/graphql",
+    cookieParser(),
     cors(),
     json(),
     expressMiddleware(server, {
-      context: async ({ req }) => ({ token: req.headers.token }),
+      context: async ({ req, res }) => ({ req, res, deserializeUser }),
     })
   );
 
   await new Promise<void>((resolve) =>
-    httpServer.listen({ port: 3001 }, resolve)
+    httpServer.listen({ port: process.env.PORT }, resolve)
   );
-  console.log(`🚀 Server ready at http://localhost:3001/graphql`);
+  console.log(
+    `🚀 Server ready at http://localhost:${process.env.PORT}/graphql`
+  );
+
+  AppDataSource.initialize()
+    .then(() => {
+      console.log("Data Source has been initialized!");
+    })
+    .catch((err) => {
+      console.error("Error during Data Source initialization: ", err);
+    });
 })();

@@ -1,4 +1,4 @@
-import { Field, ObjectType } from "type-graphql";
+import { Field, ID, ObjectType } from "type-graphql";
 import {
   Column,
   CreateDateColumn,
@@ -6,18 +6,16 @@ import {
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
-  OneToMany,
   BaseEntity,
 } from "typeorm";
-import { IUser } from "../../interfaces";
 
 @ObjectType()
-@Entity()
-@Unique(["username", "email"])
-export class Users extends BaseEntity {
-  @Field(() => Number)
+@Entity({ name: "users" })
+@Unique(["id"])
+export class UserModel extends BaseEntity {
+  @Field(() => ID)
   @PrimaryGeneratedColumn()
-  public readonly id!: number;
+  public id!: number;
 
   @Field()
   @Column()
@@ -38,8 +36,4 @@ export class Users extends BaseEntity {
   @Field()
   @UpdateDateColumn()
   public updatedAt!: Date;
-
-  @Field((_type) => [Users])
-  @OneToMany((_type) => Users, (user: IUser) => user.username)
-  public friends?: IUser[];
 }
