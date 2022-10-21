@@ -1,14 +1,12 @@
 import { Field, ID, InputType, ObjectType } from "type-graphql";
 import { IsEmail, MaxLength, MinLength } from "class-validator";
-import { UserModel } from "./user.model";
-import { BaseEntity } from "typeorm";
 
 @InputType()
 export class SignUpInput {
-  @Field(() => String)
+  @Field()
   username!: string;
 
-  @Field(() => String)
+  @Field()
   email!: string;
 
   @MinLength(8, { message: "Password must be at least 8 characters long" })
@@ -18,15 +16,34 @@ export class SignUpInput {
 }
 
 @InputType()
+export class UpdateInput {
+  @Field({ nullable: true })
+  username?: string;
+
+  @Field({ nullable: true })
+  email?: string;
+
+  @MinLength(8, { message: "Password must be at least 8 characters long" })
+  @MaxLength(32, { message: "Password must be at most 32 characters long" })
+  @Field({ nullable: true })
+  password?: string;
+
+  @MinLength(8, { message: "Password must be at least 8 characters long" })
+  @MaxLength(32, { message: "Password must be at most 32 characters long" })
+  @Field({ nullable: true })
+  passwordNew?: string;
+}
+
+@InputType()
 export class LoginInput {
   @IsEmail()
-  @Field(() => String)
-  email: string;
+  @Field()
+  email!: string;
 
   @MinLength(8, { message: "Invalid email or password" })
   @MaxLength(32, { message: "Invalid email or password" })
-  @Field(() => String)
-  password: string;
+  @Field()
+  password!: string;
 }
 
 @ObjectType()
@@ -55,8 +72,11 @@ export class UserResponse {
   @Field()
   status!: string;
 
-  @Field()
-  user!: UserData;
+  @Field({ nullable: true })
+  user?: UserData;
+
+  @Field({ nullable: true })
+  message?: string;
 }
 
 @ObjectType()
@@ -64,6 +84,9 @@ export class LoginResponse {
   @Field()
   status!: string;
 
-  @Field()
-  access_token!: string;
+  @Field({ nullable: true })
+  message?: string;
+
+  @Field({ nullable: true })
+  access_token?: string;
 }

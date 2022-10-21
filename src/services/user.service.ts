@@ -1,25 +1,18 @@
-import {
-  AuthenticationError,
-  ForbiddenError,
-  ValidationError,
-} from "apollo-server-core";
-import config from "config";
+import { ForbiddenError } from "apollo-server-core";
 import { CookieOptions } from "express";
 import * as dotenv from "dotenv";
+import * as bcrypt from "bcrypt";
 
-import { errorHandler } from "../controller";
-import { IUser } from "../interfaces";
-import deserializeUser from "../middleware/deserializeUser";
-import { LoginInput, UserModel, SignUpInput } from "../models";
-import { IContext } from "../interfaces";
-import { AppDataSource, redisClient, signJwt, verifyJwt } from "../utils";
+import { IUser, IContext } from "../interfaces";
+import { LoginInput, UserModel, SignUpInput, UpdateInput } from "../models";
+import { AppDataSource, signJwt, verifyJwt } from "../utils";
 
 dotenv.config();
 
 export class UserService {
   // Cookie Options
-  private accessTokenExpiresIn = config.get<number>("accessTokenExpiresIn");
-  private refreshTokenExpiresIn = config.get<number>("refreshTokenExpiresIn");
+  private accessTokenExpiresIn = Number(process.env.ACCESS_TOKEN_EXPIRES_IN);
+  private refreshTokenExpiresIn = Number(process.env.REFRESH_TOKEN_EXPIRES_IN);
   private cookieOptions: CookieOptions = {
     httpOnly: true,
     sameSite: "none",
@@ -45,6 +38,62 @@ export class UserService {
     return user as unknown as IUser;
   }
 
+  private async findById(id: number): Promise<IUser | null> {
+    const userRepo = AppDataSource.getRepository(UserModel);
+    const user = userRepo
+      .createQueryBuilder("users")
+      .where("users.id = :id", { id })
+      .getOne();
+    return user as unknown as IUser;
+  }
+
+  private async findByIdAndDelete(id: number): Promise<string> {
+    const userRepo = AppDataSource.getRepository(UserModel);
+    await userRepo.delete({ id });
+
+    return "success";
+  }
+
+  private async findByIdAndUpdate(
+    id: number,
+    input: UpdateInput
+  ): Promise<string> {
+    const userRepo = AppDataSource.getRepository(UserModel);
+    const user = await userRepo.findOne({ where: { id } });
+    let newUser = {};
+    if (input.password && input.passwordNew) {
+      const passwordHash = bcrypt.compareSync(input.password, user.password);
+      if (!passwordHash) {
+        return "invalid";
+      }
+      const salt = bcrypt.genSaltSync(Number(process.env.COST_FACTOR));
+      const passwordHashi = bcrypt.hashSync(input.passwordNew, salt);
+      newUser = { password: passwordHashi };
+    }
+    if (input.username) {
+      newUser = {
+        ...newUser,
+        username: input.username,
+      };
+    }
+
+    if (input.email) {
+      newUser = {
+        ...newUser,
+        email: input.email,
+      };
+    }
+
+    await userRepo
+      .createQueryBuilder()
+      .update(UserModel)
+      .set({ ...newUser })
+      .where("id = :id", { id })
+      .execute();
+
+    return "success";
+  }
+
   // Sign JWT Tokens
   private signTokens(user: IUser) {
     const userId: string = user.id.toString();
@@ -52,13 +101,8 @@ export class UserService {
     const access_token = signJwt({ userId }, "accessTokenPrivateKey", {
       expiresIn: `${this.accessTokenExpiresIn}m`,
     });
-
     const refresh_token = signJwt({ userId }, "refreshTokenPrivateKey", {
       expiresIn: `${this.refreshTokenExpiresIn}m`,
-    });
-
-    redisClient.set(userId, JSON.stringify(user), {
-      EX: this.refreshTokenExpiresIn * 60,
     });
 
     return { access_token, refresh_token };
@@ -67,21 +111,50 @@ export class UserService {
   // Register User
   public async signUpUser({ username, email, password }: SignUpInput) {
     try {
+      const message = "The user already exists, replace the email or username";
+
+      //Here take repository
       const userRepo = AppDataSource.getRepository(UserModel);
-      const user = userRepo.create({ username, email, password });
-      await userRepo.save(user).catch((err) => {
-        console.log("Error: " + err);
+
+      //Found user in database because if it true that invalid
+      const userCheckUsername = await userRepo.findOne({ where: { username } });
+      if (userCheckUsername) {
+        return {
+          status: "invalid",
+          message,
+        };
+      }
+      //Repeate check
+      const userCheckEmail = await userRepo.findOne({ where: { email } });
+      if (userCheckEmail) {
+        return {
+          status: "invalid",
+          message,
+        };
+      }
+
+      //Hashing password
+      const salt = bcrypt.genSaltSync(Number(process.env.COST_FACTOR));
+      const passwordHash = bcrypt.hashSync(password, salt);
+      const user = userRepo.create({
+        username,
+        email,
+        password: String(passwordHash),
       });
+
+      //Save user in database
+      await userRepo.save(user);
 
       return {
         status: "success",
         user,
+        message: "User created!",
       };
     } catch (error: any) {
       if (error.code === 11000) {
-        return new ValidationError("Email already exists");
+        console.error("Email already exists");
       }
-      errorHandler(error);
+      console.error(error);
     }
   }
 
@@ -89,17 +162,24 @@ export class UserService {
   public async loginUser(input: LoginInput, { res, req }: IContext) {
     try {
       const message = "Invalid email or password";
+
       // 1. Find user by email
       const user = await this.findByEmail(input.email);
-
       if (!user) {
-        return new AuthenticationError(message);
+        return {
+          status: "invalid",
+          message,
+        };
       }
 
       //2. Compare passwords
-      // if (!(await UserModel.comparePasswords(user.password, input.password))) {
-      //   return new AuthenticationError(message);
-      // }
+      const passwordHash = bcrypt.compareSync(input.password, user.password);
+      if (!passwordHash) {
+        return {
+          status: "invalid",
+          message,
+        };
+      }
 
       // 3. Sign JWT Tokens
       const { access_token, refresh_token } = this.signTokens(user);
@@ -111,30 +191,38 @@ export class UserService {
         refresh_token,
         this.refreshTokenCookieOptions
       );
-      res.cookie("logged_in", "true", {
-        ...this.accessTokenCookieOptions,
-        httpOnly: false,
-      });
 
       return {
         status: "success",
         access_token,
       };
     } catch (error: any) {
-      errorHandler(error);
+      console.error(error);
     }
   }
 
   // Get Currently Logged In User
   public async getMe({ req, res, deserializeUser }: IContext) {
     try {
-      const user = await deserializeUser(req);
+      //Check have user
+      const { message, id } = await deserializeUser(req, res);
+      let user;
+
+      //and if have we return it
+      if (message == "success") {
+        user = await this.findById(id);
+        return {
+          status: "success",
+          user: user,
+        };
+      }
+
       return {
-        status: "success",
-        user,
+        status: "invalid",
+        message,
       };
     } catch (error: any) {
-      errorHandler(error);
+      console.error(error);
     }
   }
 
@@ -154,18 +242,11 @@ export class UserService {
         throw new ForbiddenError("Could not refresh access token");
       }
 
-      // Check if user's session is valid
-      const session = await redisClient.get(decoded.userId);
-
-      if (!session) {
-        throw new ForbiddenError("User session has expired");
-      }
-
       // Check if user exist and is verified
       const userRepo = AppDataSource.getRepository(UserModel);
       const user = await userRepo
         .createQueryBuilder("users")
-        .where("users.id = :id", { id: JSON.parse(session).id })
+        .where("users.id = :id", { id: decoded.userId })
         .getOne();
 
       if (!user) {
@@ -183,36 +264,76 @@ export class UserService {
 
       // Send access token cookie
       res.cookie("access_token", access_token, this.accessTokenCookieOptions);
-      res.cookie("logged_in", "true", {
-        ...this.accessTokenCookieOptions,
-        httpOnly: false,
-      });
 
       return {
         status: "success",
         access_token,
       };
     } catch (error) {
-      errorHandler(error);
+      console.error(error);
     }
   }
 
   // Logout User
-  public async logoutUser({ req, res }: IContext) {
+  public async logoutUser({ req, res, deserializeUser }: IContext) {
     try {
-      const user = await deserializeUser(req);
+      const { message } = await deserializeUser(req, res);
+      if (message == "success") {
+        // Logout user
+        res.cookie("access_token", "", { maxAge: -1 });
+        res.cookie("refresh_token", "", { maxAge: -1 });
 
-      // Delete the user's session
-      await redisClient.del(String(user?.id));
+        return { status: "success", message: "Logout" };
+      }
 
-      // Logout user
-      res.cookie("access_token", "", { maxAge: -1 });
-      res.cookie("refresh_token", "", { maxAge: -1 });
-      res.cookie("logged_in", "", { maxAge: -1 });
-
-      return true;
+      return { status: "invalid", message };
     } catch (error) {
-      errorHandler(error);
+      console.error(error);
+    }
+  }
+
+  //Delete User
+  public async deleteUser({ req, res, deserializeUser }: IContext) {
+    try {
+      const { message, id } = await deserializeUser(req, res);
+      if (message == "success") {
+        // Logout user
+        res.cookie("access_token", "", { maxAge: -1 });
+        res.cookie("refresh_token", "", { maxAge: -1 });
+
+        //Delete user
+        this.findByIdAndDelete(id);
+
+        return { status: "success", message: "Logout" };
+      }
+
+      return { status: "invalid", message };
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  //Update User
+  public async updateUser(
+    input: UpdateInput,
+    { req, res, deserializeUser }: IContext
+  ) {
+    try {
+      const { message, id } = await deserializeUser(req, res);
+
+      if (message == "success") {
+        //Delete user
+        const mess = await this.findByIdAndUpdate(id, input);
+        if (mess == "invalid") {
+          return { status: "invalid", message: "Password uncorrect" };
+        }
+
+        return { status: "success", message: "User update" };
+      }
+
+      return { status: "invalid", message };
+    } catch (error) {
+      console.error(error);
     }
   }
 }
