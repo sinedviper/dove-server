@@ -7,11 +7,22 @@ export class SignUpInput {
   username!: string;
 
   @Field()
+  @IsEmail()
   email!: string;
 
+  @Field()
+  @MinLength(1, { message: "Name must be at least 1 characters long" })
+  @MaxLength(30, { message: "Name must be at most 30 characters long" })
+  name!: string;
+
+  @Field()
+  @MinLength(1, { message: "Surname must be at least 1 characters long" })
+  @MaxLength(30, { message: "Surname must be at most 30 characters long" })
+  surname!: string;
+
+  @Field()
   @MinLength(8, { message: "Password must be at least 8 characters long" })
   @MaxLength(32, { message: "Password must be at most 32 characters long" })
-  @Field()
   password!: string;
 }
 
@@ -23,26 +34,36 @@ export class UpdateInput {
   @Field({ nullable: true })
   email?: string;
 
+  @Field({ nullable: true })
+  @MinLength(1, { message: "Name must be at least 1 characters long" })
+  @MaxLength(30, { message: "Name must be at most 30 characters long" })
+  name?: string;
+
+  @Field({ nullable: true })
+  @MinLength(1, { message: "Surname must be at least 1 characters long" })
+  @MaxLength(30, { message: "Surname must be at most 30 characters long" })
+  surname?: string;
+
+  @Field({ nullable: true })
   @MinLength(8, { message: "Password must be at least 8 characters long" })
   @MaxLength(32, { message: "Password must be at most 32 characters long" })
-  @Field({ nullable: true })
   password?: string;
 
+  @Field({ nullable: true })
   @MinLength(8, { message: "Password must be at least 8 characters long" })
   @MaxLength(32, { message: "Password must be at most 32 characters long" })
-  @Field({ nullable: true })
   passwordNew?: string;
 }
 
 @InputType()
 export class LoginInput {
-  @IsEmail()
   @Field()
+  @IsEmail()
   email!: string;
 
+  @Field()
   @MinLength(8, { message: "Invalid email or password" })
   @MaxLength(32, { message: "Invalid email or password" })
-  @Field()
   password!: string;
 }
 
@@ -58,7 +79,10 @@ export class UserData {
   email!: string;
 
   @Field()
-  password!: string;
+  name!: string;
+
+  @Field()
+  surname!: string;
 
   @Field()
   createdAt!: Date;
@@ -68,12 +92,18 @@ export class UserData {
 }
 
 @ObjectType()
+export class UserLogin extends UserData {
+  @Field()
+  password!: string;
+}
+
+@ObjectType()
 export class UserResponse {
   @Field()
   status!: string;
 
   @Field({ nullable: true })
-  user?: UserData;
+  data?: UserData;
 
   @Field({ nullable: true })
   message?: string;

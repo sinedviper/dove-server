@@ -1,7 +1,7 @@
 import { DataSource } from "typeorm";
 import * as dotenv from "dotenv";
 
-import { UserModel } from "../models";
+import { ContactModel, UserModel } from "../models";
 dotenv.config();
 
 export const AppDataSource = new DataSource({
@@ -12,5 +12,5 @@ export const AppDataSource = new DataSource({
   password: process.env.PASSWORD,
   database: process.env.DATABASE,
   synchronize: true,
-  entities: [UserModel],
+  entities: [UserModel, ContactModel],
 });

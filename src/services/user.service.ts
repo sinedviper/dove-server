@@ -3,8 +3,15 @@ import { CookieOptions } from "express";
 import * as dotenv from "dotenv";
 import * as bcrypt from "bcrypt";
 
-import { IUser, IContext } from "../interfaces";
-import { LoginInput, UserModel, SignUpInput, UpdateInput } from "../models";
+import { IContext } from "../interfaces";
+import {
+  LoginInput,
+  UserModel,
+  SignUpInput,
+  UpdateInput,
+  UserData,
+  UserLogin,
+} from "../models";
 import { AppDataSource, signJwt, verifyJwt } from "../utils";
 
 dotenv.config();
@@ -29,22 +36,22 @@ export class UserService {
     expires: new Date(Date.now() + this.refreshTokenExpiresIn * 60 * 1000),
   };
 
-  private async findByEmail(email: string): Promise<IUser | null> {
+  private async findByEmail(email: string): Promise<UserLogin | null> {
     const userRepo = AppDataSource.getRepository(UserModel);
     const user = userRepo
       .createQueryBuilder("users")
       .where("users.email = :email", { email })
       .getOne();
-    return user as unknown as IUser;
+    return user as unknown as UserLogin;
   }
 
-  private async findById(id: number): Promise<IUser | null> {
+  private async findById(id: number): Promise<UserData | null> {
     const userRepo = AppDataSource.getRepository(UserModel);
     const user = userRepo
       .createQueryBuilder("users")
       .where("users.id = :id", { id })
       .getOne();
-    return user as unknown as IUser;
+    return user as unknown as UserData;
   }
 
   private async findByIdAndDelete(id: number): Promise<string> {
@@ -70,19 +77,17 @@ export class UserService {
       const passwordHashi = bcrypt.hashSync(input.passwordNew, salt);
       newUser = { password: passwordHashi };
     }
-    if (input.username) {
-      newUser = {
-        ...newUser,
-        username: input.username,
-      };
-    }
 
-    if (input.email) {
-      newUser = {
-        ...newUser,
-        email: input.email,
-      };
-    }
+    newUser = input.name ? { ...newUser, name: input.name } : { ...newUser };
+
+    newUser = input.surname
+      ? { ...newUser, surname: input.surname }
+      : { ...newUser };
+
+    newUser = input.username
+      ? { ...newUser, username: input.username }
+      : { ...newUser };
+    newUser = input.email ? { ...newUser, email: input.email } : { ...newUser };
 
     await userRepo
       .createQueryBuilder()
@@ -95,7 +100,7 @@ export class UserService {
   }
 
   // Sign JWT Tokens
-  private signTokens(user: IUser) {
+  private signTokens(user: UserData) {
     const userId: string = user.id.toString();
 
     const access_token = signJwt({ userId }, "accessTokenPrivateKey", {
@@ -109,7 +114,13 @@ export class UserService {
   }
 
   // Register User
-  public async signUpUser({ username, email, password }: SignUpInput) {
+  public async signUpUser({
+    username,
+    email,
+    password,
+    name,
+    surname,
+  }: SignUpInput) {
     try {
       const message = "The user already exists, replace the email or username";
 
@@ -139,6 +150,8 @@ export class UserService {
       const user = userRepo.create({
         username,
         email,
+        name,
+        surname,
         password: String(passwordHash),
       });
 
@@ -147,7 +160,7 @@ export class UserService {
 
       return {
         status: "success",
-        user,
+        data: user,
         message: "User created!",
       };
     } catch (error: any) {
@@ -213,7 +226,7 @@ export class UserService {
         user = await this.findById(id);
         return {
           status: "success",
-          user: user,
+          data: user,
         };
       }
 

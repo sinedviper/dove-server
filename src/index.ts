@@ -9,7 +9,7 @@ import { buildTypeDefsAndResolvers } from "type-graphql/dist/utils/buildTypeDefs
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { expressMiddleware } from "@apollo/server/express4";
 
-import { ResolverUser } from "./resolvers";
+import { ResolverUser, ResolverContact } from "./resolvers";
 import deserializeUser from "./middleware/deserializeUser";
 import { AppDataSource } from "./utils";
 
@@ -20,7 +20,7 @@ dotenv.config();
   const httpServer = http.createServer(app);
 
   const { typeDefs, resolvers } = await buildTypeDefsAndResolvers({
-    resolvers: [ResolverUser],
+    resolvers: [ResolverUser, ResolverContact],
   });
 
   const server = new ApolloServer({
@@ -44,9 +44,7 @@ dotenv.config();
   await new Promise<void>((resolve) =>
     httpServer.listen({ port: process.env.PORT }, resolve)
   );
-  console.log(
-    `🚀 Server ready at http://localhost:${process.env.PORT}/graphql`
-  );
+  console.log(`Server ready at http://localhost:${process.env.PORT}/graphql`);
 
   AppDataSource.initialize()
     .then(() => {

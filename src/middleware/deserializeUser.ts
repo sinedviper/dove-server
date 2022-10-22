@@ -1,8 +1,8 @@
-import { IContext } from "./../interfaces/Context";
 import { Request, Response } from "express";
 
 import { UserService } from "../services";
 import { verifyJwt } from "../utils";
+import { IContext } from "../interfaces";
 
 const deserializeUser = async (
   req: Request,
@@ -12,16 +12,15 @@ const deserializeUser = async (
     // Get the access token
     let access_token: string;
     let userService = new UserService();
+    const accessHeaders: string = req.headers.authorization;
+    const accessCookies: string = req.cookies?.access_token;
 
-    if (req.headers.authorization) {
-      access_token = req.headers.authorization;
-    } else if (req.cookies?.access_token) {
-      const { access_token: token } = req.cookies;
-      access_token = token;
+    if (accessHeaders) {
+      if (accessHeaders == accessCookies) access_token = accessHeaders;
     }
 
     //Check the refresh token
-    if (!access_token) {
+    if (!access_token && !accessCookies) {
       if (req.cookies?.refresh_token) {
         const ctx = { req, res } as IContext;
         const access = await userService.refreshAccessToken(ctx);
@@ -48,16 +47,3 @@ const deserializeUser = async (
 };
 
 export default deserializeUser;
-
-// // Check if user exist
-// const userRepo = AppDataSource.getRepository(UserModel);
-
-// const user = await userRepo.findOne({
-//   where: { id: Number(decoded.userId) },
-// });
-
-// if (!user) {
-//   throw new ForbiddenError(
-//     "The user belonging to this token no logger exist"
-//   );
-// }
