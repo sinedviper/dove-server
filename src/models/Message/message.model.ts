@@ -1,3 +1,4 @@
+import { ChatModel } from "./../Chat/chat.model";
 import { UserModel } from "../User/user.model";
 import { Field, ID, ObjectType } from "type-graphql";
 import {
@@ -8,24 +9,29 @@ import {
   BaseEntity,
   JoinColumn,
   ManyToOne,
+  Column,
 } from "typeorm";
 
 @ObjectType()
-@Entity({ name: "contact" })
-export class ContactModel extends BaseEntity {
+@Entity({ name: "message" })
+export class MessageModel extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   public id!: number;
 
   @Field(() => UserModel)
   @ManyToOne(() => UserModel, (user: UserModel) => user.id)
-  @JoinColumn({ name: "userId" })
-  public userId!: Number;
+  @JoinColumn({ name: "senderMessage" })
+  public senderMessage!: Number;
 
-  @Field(() => UserModel)
-  @ManyToOne(() => UserModel, (user: UserModel) => user.id)
-  @JoinColumn({ name: "contactId" })
-  public contactId!: Number;
+  @Field(() => String)
+  @Column()
+  public text!: String;
+
+  @Field(() => ChatModel)
+  @ManyToOne(() => ChatModel, (chat: ChatModel) => chat.id)
+  @JoinColumn({ name: "chatId" })
+  public chatId!: Number;
 
   @Field()
   @CreateDateColumn()

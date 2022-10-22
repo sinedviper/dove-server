@@ -4,7 +4,7 @@ import { UserService } from "../services";
 import { verifyJwt } from "../utils";
 import { IContext } from "../interfaces";
 
-const deserializeUser = async (
+export const autorization = async (
   req: Request,
   res: Response
 ): Promise<{ id: number | undefined; message: string }> => {
@@ -45,5 +45,3 @@ const deserializeUser = async (
     console.error(error);
   }
 };
-
-export default deserializeUser;

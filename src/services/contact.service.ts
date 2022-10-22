@@ -79,13 +79,13 @@ export class ContactService {
   //Add contact
   public async addContact(
     input: ContactInput,
-    { req, res, deserializeUser }: IContext
+    { req, res, autorization }: IContext
   ) {
     try {
-      const { message } = await deserializeUser(req, res);
+      const { message } = await autorization(req, res);
 
       if (message == "success") {
-        //Add contact
+        //Add function contact
         const mess = await this.findByIdAndAdd(input.userId, input.contactId);
         if (mess == "invalid") {
           return { status: "invalid", message: "Can't add" };
@@ -103,13 +103,13 @@ export class ContactService {
   //Delete Contact
   public async deleteContact(
     input: ContactInput,
-    { req, res, deserializeUser }: IContext
+    { req, res, autorization }: IContext
   ) {
     try {
-      const { message } = await deserializeUser(req, res);
+      const { message } = await autorization(req, res);
 
       if (message == "success") {
-        //Add contact
+        //Delete fucntion contact
         const mess = await this.findByIdAndDelete(
           input.userId,
           input.contactId
@@ -130,13 +130,13 @@ export class ContactService {
   //Find Contacts
   public async findContacts(
     input: ContactInput,
-    { req, res, deserializeUser }: IContext
+    { req, res, autorization }: IContext
   ) {
     try {
-      const { message } = await deserializeUser(req, res);
+      const { message } = await autorization(req, res);
 
       if (message == "success") {
-        //Add contact
+        //Find function contact
         const data = await this.findContactUser(input.userId);
         if (data == "invalid") {
           return { status: "invalid", message: "Can't find" };

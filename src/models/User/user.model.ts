@@ -1,4 +1,3 @@
-import { ContactModel } from "../Contact";
 import { Field, ID, ObjectType } from "type-graphql";
 import {
   Column,
@@ -9,6 +8,10 @@ import {
   BaseEntity,
   OneToMany,
 } from "typeorm";
+
+import { MessageModel } from "../Message";
+import { ChatModel } from "../Chat";
+import { ContactModel } from "../Contact";
 
 @ObjectType()
 @Entity({ name: "users" })
@@ -50,4 +53,16 @@ export class UserModel extends BaseEntity {
 
   @OneToMany(() => ContactModel, (contact: ContactModel) => contact.contactId)
   contactId: ContactModel[];
+
+  @OneToMany(() => ChatModel, (chat: ChatModel) => chat.sender)
+  sender: ChatModel[];
+
+  @OneToMany(() => ChatModel, (chat: ChatModel) => chat.recipient)
+  recipient: ChatModel[];
+
+  @OneToMany(
+    () => MessageModel,
+    (message: MessageModel) => message.senderMessage
+  )
+  senderMessage: MessageModel[];
 }

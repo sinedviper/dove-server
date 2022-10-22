@@ -9,9 +9,9 @@ import { buildTypeDefsAndResolvers } from "type-graphql/dist/utils/buildTypeDefs
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { expressMiddleware } from "@apollo/server/express4";
 
-import { ResolverUser, ResolverContact } from "./resolvers";
-import deserializeUser from "./middleware/deserializeUser";
+import { ResolverUser, ResolverContact, ResolverChat } from "./resolvers";
 import { AppDataSource } from "./utils";
+import { autorization } from "./middleware";
 
 dotenv.config();
 
@@ -20,7 +20,7 @@ dotenv.config();
   const httpServer = http.createServer(app);
 
   const { typeDefs, resolvers } = await buildTypeDefsAndResolvers({
-    resolvers: [ResolverUser, ResolverContact],
+    resolvers: [ResolverUser, ResolverContact, ResolverChat],
   });
 
   const server = new ApolloServer({
@@ -37,7 +37,7 @@ dotenv.config();
     cors(),
     json(),
     expressMiddleware(server, {
-      context: async ({ req, res }) => ({ req, res, deserializeUser }),
+      context: async ({ req, res }) => ({ req, res, autorization }),
     })
   );
 

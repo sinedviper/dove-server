@@ -215,10 +215,10 @@ export class UserService {
   }
 
   // Get Currently Logged In User
-  public async getMe({ req, res, deserializeUser }: IContext) {
+  public async getMe({ req, res, autorization }: IContext) {
     try {
       //Check have user
-      const { message, id } = await deserializeUser(req, res);
+      const { message, id } = await autorization(req, res);
       let user;
 
       //and if have we return it
@@ -288,9 +288,9 @@ export class UserService {
   }
 
   // Logout User
-  public async logoutUser({ req, res, deserializeUser }: IContext) {
+  public async logoutUser({ req, res, autorization }: IContext) {
     try {
-      const { message } = await deserializeUser(req, res);
+      const { message } = await autorization(req, res);
       if (message == "success") {
         // Logout user
         res.cookie("access_token", "", { maxAge: -1 });
@@ -306,9 +306,9 @@ export class UserService {
   }
 
   //Delete User
-  public async deleteUser({ req, res, deserializeUser }: IContext) {
+  public async deleteUser({ req, res, autorization }: IContext) {
     try {
-      const { message, id } = await deserializeUser(req, res);
+      const { message, id } = await autorization(req, res);
       if (message == "success") {
         // Logout user
         res.cookie("access_token", "", { maxAge: -1 });
@@ -329,10 +329,10 @@ export class UserService {
   //Update User
   public async updateUser(
     input: UpdateInput,
-    { req, res, deserializeUser }: IContext
+    { req, res, autorization }: IContext
   ) {
     try {
-      const { message, id } = await deserializeUser(req, res);
+      const { message, id } = await autorization(req, res);
 
       if (message == "success") {
         //Delete user
