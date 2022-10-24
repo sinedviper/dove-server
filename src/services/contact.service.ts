@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 
+import { invalid, success } from "../constants";
 import { IContext } from "../interfaces";
 import { ContactInput, ContactModel, UserData } from "../models";
 import { AppDataSource } from "../utils";
@@ -22,7 +23,7 @@ export class ContactService {
       .getOne();
 
     if (findContact) {
-      return "invalid";
+      return invalid;
     }
     //create contact
     const contact = contactRepo.create({
@@ -31,7 +32,7 @@ export class ContactService {
     });
     await contactRepo.save(contact);
 
-    return "success";
+    return success;
   }
 
   //Delete contact to user
@@ -49,7 +50,7 @@ export class ContactService {
       .getOne();
 
     if (!findContact) {
-      return "invalid";
+      return invalid;
     }
     //delete contact
     await contactRepo
@@ -59,7 +60,7 @@ export class ContactService {
       .andWhere("contact.contactId = :contactId", { contactId })
       .execute();
 
-    return "success";
+    return success;
   }
 
   //find contact User
@@ -74,7 +75,7 @@ export class ContactService {
       .getMany();
 
     if (!findContact) {
-      return "invalid";
+      return invalid;
     }
     //give contacts
     return findContact.map((obj) => {
@@ -90,17 +91,17 @@ export class ContactService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == "success" && id == input.userId) {
+      if (message == success && id == input.userId) {
         //Add function contact
         const mess = await this.findByIdAndAdd(input);
-        if (mess == "invalid") {
-          return { status: "invalid", message: "Can't add" };
+        if (mess == invalid) {
+          return { status: invalid, message: "Can't add" };
         }
 
-        return { status: "success", message: "Contact add" };
+        return { status: success, message: "Contact add" };
       }
 
-      return { status: "invalid", message };
+      return { status: invalid, message };
     } catch (error) {
       console.error(error);
     }
@@ -114,17 +115,17 @@ export class ContactService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == "success" && id == input.userId) {
+      if (message == success && id == input.userId) {
         //Delete fucntion contact
         const mess = await this.findByIdAndDelete(input);
-        if (mess == "invalid") {
-          return { status: "invalid", message: "Can't delete" };
+        if (mess == invalid) {
+          return { status: invalid, message: "Can't delete" };
         }
 
-        return { status: "success", message: "Contact delete" };
+        return { status: success, message: "Contact delete" };
       }
 
-      return { status: "invalid", message };
+      return { status: invalid, message };
     } catch (error) {
       console.error(error);
     }
@@ -135,17 +136,17 @@ export class ContactService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == "success") {
+      if (message == success) {
         //Find function contact
         const data = await this.findContactUser(id);
-        if (data == "invalid") {
-          return { status: "invalid", message: "Can't find" };
+        if (data == invalid) {
+          return { status: invalid, message: "Can't find" };
         }
 
-        return { status: "success", data };
+        return { status: success, data };
       }
 
-      return { status: "invalid", message };
+      return { status: invalid, message };
     } catch (error) {
       console.error(error);
     }

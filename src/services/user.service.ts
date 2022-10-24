@@ -11,6 +11,7 @@ import {
   UserLogin,
 } from "../models";
 import { AppDataSource, signJwt } from "../utils";
+import { invalid, success } from "../constants";
 
 dotenv.config();
 
@@ -40,7 +41,7 @@ export class UserService {
     const userRepo = AppDataSource.getRepository(UserModel);
     await userRepo.delete({ id });
 
-    return "success";
+    return success;
   }
 
   private async findByIdAndUpdate(
@@ -53,7 +54,7 @@ export class UserService {
     if (input.password && input.passwordNew) {
       const passwordHash = bcrypt.compareSync(input.password, user.password);
       if (!passwordHash) {
-        return "invalid";
+        return invalid;
       }
       const salt = bcrypt.genSaltSync(Number(process.env.COST_FACTOR));
       const passwordHashi = bcrypt.hashSync(input.passwordNew, salt);
@@ -78,7 +79,7 @@ export class UserService {
       .where("id = :id", { id })
       .execute();
 
-    return "success";
+    return success;
   }
 
   // Sign JWT Tokens
@@ -107,31 +108,31 @@ export class UserService {
       const message = "The user already exists, replace the email or username";
       if (username.length < 3 || username.length > 30) {
         return {
-          status: "Invalid",
+          status: invalid,
           message: "Username must be between 3 and 30 characters",
         };
       }
       if (email.length < 3 || email.length > 40) {
         return {
-          status: "Invalid",
+          status: invalid,
           message: "Email must be between 3 and 40 characters",
         };
       }
       if (password.length < 8 || password.length > 40) {
         return {
-          status: "Invalid",
+          status: invalid,
           message: "Password must be between 8 and 40 characters",
         };
       }
       if (name.length < 1 || name.length > 30) {
         return {
-          status: "Invalid",
+          status: invalid,
           message: "Name must be between 1 and 40 characters",
         };
       }
       if (surname.length < 1 || surname.length > 30) {
         return {
-          status: "Invalid",
+          status: invalid,
           message: "Surname must be between 1 and 40 characters",
         };
       }
@@ -142,7 +143,7 @@ export class UserService {
       const userCheckUsername = await userRepo.findOne({ where: { username } });
       if (userCheckUsername) {
         return {
-          status: "Invalid",
+          status: invalid,
           message,
         };
       }
@@ -150,7 +151,7 @@ export class UserService {
       const userCheckEmail = await userRepo.findOne({ where: { email } });
       if (userCheckEmail) {
         return {
-          status: "Invalid",
+          status: invalid,
           message,
         };
       }
@@ -170,7 +171,7 @@ export class UserService {
       await userRepo.save(user);
 
       return {
-        status: "success",
+        status: success,
         data: user,
         message: "User created!",
       };
@@ -185,13 +186,13 @@ export class UserService {
       const message = "Invalid email or password";
       if (input.email.length < 3 || input.email.length > 40) {
         return {
-          status: "Invalid",
+          status: invalid,
           message: "Email must be between 3 and 40 characters",
         };
       }
       if (input.password.length < 8 || input.password.length > 40) {
         return {
-          status: "Invalid",
+          status: invalid,
           message: "Password must be between 8 and 40 characters",
         };
       }
@@ -199,7 +200,7 @@ export class UserService {
       const user = await this.findByEmail(input.email);
       if (!user) {
         return {
-          status: "Invalid",
+          status: invalid,
           message,
         };
       }
@@ -208,7 +209,7 @@ export class UserService {
       const passwordHash = bcrypt.compareSync(input.password, user.password);
       if (!passwordHash) {
         return {
-          status: "Invalid",
+          status: invalid,
           message,
         };
       }
@@ -218,13 +219,13 @@ export class UserService {
 
       if (!access_token) {
         return {
-          status: "Invalid",
+          status: invalid,
           message,
         };
       }
 
       return {
-        status: "success",
+        status: success,
         access_token,
       };
     } catch (error: any) {
@@ -239,17 +240,17 @@ export class UserService {
       const { message, id } = await autorization(req, res);
 
       //and if have we return it
-      if (message == "success") {
+      if (message == success) {
         const user = await this.findById(id);
 
         return {
-          status: "success",
+          status: success,
           data: user,
         };
       }
 
       return {
-        status: "Invalid",
+        status: invalid,
         message: "user not found",
       };
     } catch (error: any) {
@@ -261,7 +262,7 @@ export class UserService {
   public async deleteUser({ req, res, autorization }: IContext) {
     try {
       const { message, id } = await autorization(req, res);
-      if (message == "success") {
+      if (message == success) {
         // Logout user
         res.cookie("access_token", "", { maxAge: -1 });
         res.cookie("refresh_token", "", { maxAge: -1 });
@@ -269,10 +270,10 @@ export class UserService {
         //Delete user
         this.findByIdAndDelete(id);
 
-        return { status: "success", message: "Logout" };
+        return { status: success, message: "Logout" };
       }
 
-      return { status: "Invalid", message };
+      return { status: invalid, message };
     } catch (error) {
       console.error(error);
     }
@@ -287,58 +288,58 @@ export class UserService {
       if (input.username)
         if (input.username.length < 3 || input.username.length > 30) {
           return {
-            status: "Invalid",
+            status: invalid,
             message: "Username must be between 3 and 30 characters",
           };
         }
       if (input.email)
         if (input.email.length < 3 || input.email.length > 40) {
           return {
-            status: "Invalid",
+            status: invalid,
             message: "Email must be between 3 and 40 characters",
           };
         }
       if (input.password)
         if (input.password.length < 8 || input.password.length > 40) {
           return {
-            status: "Invalid",
+            status: invalid,
             message: "Password must be between 8 and 40 characters",
           };
         }
       if (input.passwordNew)
         if (input.passwordNew.length < 8 || input.passwordNew.length > 40) {
           return {
-            status: "Invalid",
+            status: invalid,
             message: "Password must be between 8 and 40 characters",
           };
         }
       if (input.name)
         if (input.name.length < 1 || input.name.length > 30) {
           return {
-            status: "Invalid",
+            status: invalid,
             message: "Name must be between 1 and 40 characters",
           };
         }
       if (input.surname)
         if (input.surname.length < 1 || input.surname.length > 30) {
           return {
-            status: "Invalid",
+            status: invalid,
             message: "Surname must be between 1 and 40 characters",
           };
         }
       const { message, id } = await autorization(req, res);
 
-      if (message == "success") {
+      if (message == success) {
         //Delete user
         const mess = await this.findByIdAndUpdate(id, input);
-        if (mess == "Invalid") {
-          return { status: "Invalid", message: "Password uncorrect" };
+        if (mess == invalid) {
+          return { status: invalid, message: "Password uncorrect" };
         }
 
-        return { status: "success", message: "User update" };
+        return { status: success, message: "User update" };
       }
 
-      return { status: "Invalid", message };
+      return { status: invalid, message };
     } catch (error) {
       console.error(error);
     }

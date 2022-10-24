@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 
+import { invalid, success } from "../constants";
 import { IContext } from "../interfaces";
 import {
   MessageInput,
@@ -21,7 +22,7 @@ export class MessageService {
     chatId,
   }: MessageInput): Promise<string> {
     if (text.length > 1000 || text.length < 1) {
-      return "invalid";
+      return invalid;
     }
     //search table
     const messageRepo = AppDataSource.getRepository(MessageModel);
@@ -34,7 +35,7 @@ export class MessageService {
     //save
     await messageRepo.save(message);
 
-    return "success";
+    return success;
   }
 
   //Delete chat to user
@@ -48,7 +49,7 @@ export class MessageService {
       .getOne();
 
     if (!message) {
-      return "invalid";
+      return invalid;
     }
     //delete column
     await messageRepo
@@ -57,7 +58,7 @@ export class MessageService {
       .where("message.id = :id", { id })
       .execute();
 
-    return "success";
+    return success;
   }
 
   private async findByIdAndUpdate({
@@ -73,10 +74,10 @@ export class MessageService {
       .getOne();
 
     if (!message) {
-      return "invalid";
+      return invalid;
     }
     if (text.length > 1000 || text.length < 1) {
-      return "invalid";
+      return invalid;
     }
     //update column
     await messageRepo
@@ -86,7 +87,7 @@ export class MessageService {
       .where("message.id = :id", { id })
       .execute();
 
-    return "success";
+    return success;
   }
 
   //find message
@@ -104,7 +105,7 @@ export class MessageService {
       .getMany();
 
     if (!findMessage) {
-      return "invalid";
+      return invalid;
     }
 
     return findMessage?.sort(
@@ -120,17 +121,17 @@ export class MessageService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == "success" && id == input.senderMessage) {
+      if (message == success && id == input.senderMessage) {
         //Add function message
         const data = await this.findByIdAndAdd(input);
-        if (data == "invalid") {
-          return { status: "invalid", message: "Can't add message" };
+        if (data == invalid) {
+          return { status: invalid, message: "Can't add message" };
         }
 
-        return { status: "success", message: "Message add" };
+        return { status: success, message: "Message add" };
       }
 
-      return { status: "invalid", message: "Invalid user" };
+      return { status: invalid, message: "Invalid user" };
     } catch (error) {
       console.error(error);
     }
@@ -144,16 +145,16 @@ export class MessageService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == "success" && id == input.senderMessage) {
+      if (message == success && id == input.senderMessage) {
         //Delete fucntion message
         const data = await this.findByIdAndDelete(input.id);
-        if (data == "invalid") {
-          return { status: "invalid", message: "Message not delete" };
+        if (data == invalid) {
+          return { status: invalid, message: "Message not delete" };
         }
-        return { status: "success", message: "Message delete" };
+        return { status: success, message: "Message delete" };
       }
 
-      return { status: "invalid", message: "Invalid user" };
+      return { status: invalid, message: "Invalid user" };
     } catch (error) {
       console.error(error);
     }
@@ -167,13 +168,13 @@ export class MessageService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == "success" && id == input.senderMessage) {
+      if (message == success && id == input.senderMessage) {
         //Add function message
         const data = await this.findMessage(input);
-        return { status: "success", data };
+        return { status: success, data };
       }
 
-      return { status: "invalid", message: "Invalid user" };
+      return { status: invalid, message: "Invalid user" };
     } catch (error) {
       console.error(error);
     }
@@ -185,16 +186,16 @@ export class MessageService {
   ) {
     try {
       const { message, id } = await autorization(req, res);
-      if (message == "success" && id == input.senderMessage) {
+      if (message == success && id == input.senderMessage) {
         //Update function message
         const message = await this.findByIdAndUpdate(input);
-        if (message == "invalid") {
-          return { status: "invalid", message: "Message not update" };
+        if (message == invalid) {
+          return { status: invalid, message: "Message not update" };
         }
-        return { status: "success", message: "Message update" };
+        return { status: success, message: "Message update" };
       }
 
-      return { status: "invalid", message: "Invalid user" };
+      return { status: invalid, message: "Invalid user" };
     } catch (error) {
       console.error(error);
     }

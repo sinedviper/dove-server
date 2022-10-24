@@ -1,5 +1,6 @@
 import { Request } from "express";
 
+import { success } from "../constants";
 import { verifyJwt } from "../utils";
 
 interface Data {
@@ -23,7 +24,7 @@ export const autorization = async (req: Request): Promise<Data> => {
       return { id: undefined, message: "Invalid access token" };
     }
 
-    return { id: Number(decoded.userId), message: "success" };
+    return { id: Number(decoded.userId), message: success };
   } catch (error: any) {
     console.error("Error token: " + error);
   }

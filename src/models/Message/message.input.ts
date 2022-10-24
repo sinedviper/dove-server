@@ -1,7 +1,7 @@
-import { MessageModel } from "./message.model";
 import { Field, ID, InputType, ObjectType } from "type-graphql";
 
 import { UserModel } from "../User";
+import { MessageModel } from "./message.model";
 
 @InputType()
 export class MessageInput {

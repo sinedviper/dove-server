@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { buildTypeDefsAndResolvers } from "type-graphql/dist/utils/buildTypeDefsAndResolvers";
-import { expressMiddleware } from "@apollo/server/express4";
+
 import {
   ResolverUser,
   ResolverContact,
@@ -40,31 +40,3 @@ dotenv.config();
       console.error("Error during Data Source initialization: ", err);
     });
 })();
-
-//import cors from "cors";
-// import http from "http";
-// import express, { json } from "express";
-// import cookieParser from "cookie-parser";
-// import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
-// import { expressMiddleware } from "@apollo/server/express4";
-// const server = new ApolloServer({
-//   typeDefs,
-//   resolvers,
-//   plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-// });
-
-// await server.start();
-
-// app.use(
-//   "/graphql",
-//   cookieParser(),
-//   cors(),
-//   json(),
-//   expressMiddleware(server, {
-//     context: async ({ req, res }) => ({ req, res, autorization }),
-//   })
-// );
-
-// await new Promise<void>((resolve) =>
-//   httpServer.listen({ port: process.env.PORT }, resolve)
-// );

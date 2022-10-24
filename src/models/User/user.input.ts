@@ -1,5 +1,4 @@
 import { Field, ID, InputType, ObjectType } from "type-graphql";
-import { IsEmail, MaxLength, MinLength } from "class-validator";
 
 @InputType()
 export class SignUpInput {
@@ -7,7 +6,6 @@ export class SignUpInput {
   username!: string;
 
   @Field(() => String)
-  @IsEmail()
   email!: string;
 
   @Field(() => String)
@@ -44,7 +42,6 @@ export class UpdateInput {
 @InputType()
 export class LoginInput {
   @Field(() => String)
-  @IsEmail()
   email!: string;
 
   @Field(() => String)

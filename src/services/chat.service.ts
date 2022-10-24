@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 
+import { invalid, success } from "../constants";
 import { IContext } from "../interfaces";
 import { ChatInput, UserData, ChatModel } from "../models";
 import { AppDataSource } from "../utils";
@@ -30,9 +31,9 @@ export class ChatService {
             recipient: input.recipient,
           })
           .execute();
-        return "success";
+        return success;
       }
-      return "invalid";
+      return invalid;
     } else if (!findChat) {
       findChat = await chatRepo
         .createQueryBuilder("chat")
@@ -53,9 +54,9 @@ export class ChatService {
               recipient: input.sender,
             })
             .execute();
-          return "success";
+          return success;
         }
-        return "invalid";
+        return invalid;
       }
     }
     //create chat
@@ -67,7 +68,7 @@ export class ChatService {
     });
     await chatRepo.save(chat);
 
-    return "success";
+    return success;
   }
 
   //Delete chat to user
@@ -83,7 +84,7 @@ export class ChatService {
       .getOne();
 
     if (!user) {
-      return "invalid";
+      return invalid;
     }
 
     const userSender: UserData = user.sender as unknown as UserData;
@@ -121,7 +122,7 @@ export class ChatService {
       }
     }
 
-    return "success";
+    return success;
   }
 
   //find chat User
@@ -159,17 +160,17 @@ export class ChatService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == "success" && id == input.sender) {
+      if (message == success && id == input.sender) {
         //Add function chat
         const data = await this.findByIdAndAdd(input);
-        if (data == "invalid") {
-          return { status: "invalid", message: "Can't add" };
+        if (data == invalid) {
+          return { status: invalid, message: "Can't add" };
         }
 
-        return { status: "success", message: "Chat add" };
+        return { status: success, message: "Chat add" };
       }
 
-      return { status: "invalid", message };
+      return { status: invalid, message };
     } catch (error) {
       console.error(error);
     }
@@ -180,16 +181,16 @@ export class ChatService {
     try {
       const { message, id: userId } = await autorization(req, res);
 
-      if (message == "success") {
+      if (message == success) {
         //Delete fucntion chat
         const data = await this.findByIdAndDelete(id, userId);
-        if (data == "invalid") {
-          return { status: "invalid", message: "Chat not delete" };
+        if (data == invalid) {
+          return { status: invalid, message: "Chat not delete" };
         }
-        return { status: "success", message: "Chat delete" };
+        return { status: success, message: "Chat delete" };
       }
 
-      return { status: "invalid", message };
+      return { status: invalid, message };
     } catch (error) {
       console.error(error);
     }
@@ -200,13 +201,13 @@ export class ChatService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == "success") {
+      if (message == success) {
         //Add chat
         const data = await this.findChatUser(id);
-        return { status: "success", data };
+        return { status: success, data };
       }
 
-      return { status: "invalid", message };
+      return { status: invalid, message };
     } catch (error) {
       console.error(error);
     }
