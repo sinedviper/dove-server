@@ -8,11 +8,13 @@ dotenv.config();
 
 export class ContactService {
   //Add contact to user
-  private async findByIdAndAdd(
-    userId: number,
-    contactId: number
-  ): Promise<string> {
+  private async findByIdAndAdd({
+    userId,
+    contactId,
+  }: ContactInput): Promise<string> {
+    //search table
     const contactRepo = AppDataSource.getRepository(ContactModel);
+    //find values
     const findContact = await contactRepo
       .createQueryBuilder("contact")
       .where("contact.userId = :userId", { userId })
@@ -22,7 +24,7 @@ export class ContactService {
     if (findContact) {
       return "invalid";
     }
-
+    //create contact
     const contact = contactRepo.create({
       userId,
       contactId,
@@ -33,11 +35,13 @@ export class ContactService {
   }
 
   //Delete contact to user
-  private async findByIdAndDelete(
-    userId: number,
-    contactId: number
-  ): Promise<string> {
+  private async findByIdAndDelete({
+    userId,
+    contactId,
+  }: ContactInput): Promise<string> {
+    //search table
     const contactRepo = AppDataSource.getRepository(ContactModel);
+    //find values
     const findContact = await contactRepo
       .createQueryBuilder("contact")
       .where("contact.userId = :userId", { userId })
@@ -47,7 +51,7 @@ export class ContactService {
     if (!findContact) {
       return "invalid";
     }
-
+    //delete contact
     await contactRepo
       .createQueryBuilder("contact")
       .delete()
@@ -60,7 +64,9 @@ export class ContactService {
 
   //find contact User
   private async findContactUser(userId: number): Promise<UserData[] | string> {
+    //search table
     const contactRepo = AppDataSource.getRepository(ContactModel);
+    //find values
     const findContact = await contactRepo
       .createQueryBuilder("contact")
       .where("contact.userId = :userId", { userId })
@@ -70,23 +76,23 @@ export class ContactService {
     if (!findContact) {
       return "invalid";
     }
-
+    //give contacts
     return findContact.map((obj) => {
       return obj.contactId as unknown as UserData;
     }) as UserData[];
   }
-
+  //-----------------------------------------------------------Public function-------------------------------------------------
   //Add contact
   public async addContact(
     input: ContactInput,
     { req, res, autorization }: IContext
   ) {
     try {
-      const { message } = await autorization(req, res);
+      const { message, id } = await autorization(req, res);
 
-      if (message == "success") {
+      if (message == "success" && id == input.userId) {
         //Add function contact
-        const mess = await this.findByIdAndAdd(input.userId, input.contactId);
+        const mess = await this.findByIdAndAdd(input);
         if (mess == "invalid") {
           return { status: "invalid", message: "Can't add" };
         }
@@ -106,14 +112,11 @@ export class ContactService {
     { req, res, autorization }: IContext
   ) {
     try {
-      const { message } = await autorization(req, res);
+      const { message, id } = await autorization(req, res);
 
-      if (message == "success") {
+      if (message == "success" && id == input.userId) {
         //Delete fucntion contact
-        const mess = await this.findByIdAndDelete(
-          input.userId,
-          input.contactId
-        );
+        const mess = await this.findByIdAndDelete(input);
         if (mess == "invalid") {
           return { status: "invalid", message: "Can't delete" };
         }
@@ -128,16 +131,13 @@ export class ContactService {
   }
 
   //Find Contacts
-  public async findContacts(
-    input: ContactInput,
-    { req, res, autorization }: IContext
-  ) {
+  public async findContacts({ req, res, autorization }: IContext) {
     try {
-      const { message } = await autorization(req, res);
+      const { message, id } = await autorization(req, res);
 
       if (message == "success") {
         //Find function contact
-        const data = await this.findContactUser(input.userId);
+        const data = await this.findContactUser(id);
         if (data == "invalid") {
           return { status: "invalid", message: "Can't find" };
         }

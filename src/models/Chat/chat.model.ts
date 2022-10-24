@@ -1,5 +1,3 @@
-import { MessageModel } from "./../Message/message.model";
-import { UserModel } from "../User/user.model";
 import { Field, ID, ObjectType } from "type-graphql";
 import {
   CreateDateColumn,
@@ -12,6 +10,9 @@ import {
   Column,
   OneToMany,
 } from "typeorm";
+
+import { MessageModel } from "../Message";
+import { UserModel } from "../User";
 
 @ObjectType()
 @Entity({ name: "chat" })

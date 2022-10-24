@@ -1,5 +1,3 @@
-import { ChatModel } from "./../Chat/chat.model";
-import { UserModel } from "../User/user.model";
 import { Field, ID, ObjectType } from "type-graphql";
 import {
   CreateDateColumn,
@@ -11,6 +9,9 @@ import {
   ManyToOne,
   Column,
 } from "typeorm";
+
+import { ChatModel } from "../Chat";
+import { UserModel } from "../User";
 
 @ObjectType()
 @Entity({ name: "message" })
@@ -25,7 +26,7 @@ export class MessageModel extends BaseEntity {
   public senderMessage!: Number;
 
   @Field(() => String)
-  @Column()
+  @Column("text")
   public text!: String;
 
   @Field(() => ChatModel)

@@ -11,11 +11,8 @@ export class ResolverContact {
   }
 
   @Query(() => ContactResponse)
-  async getContacts(
-    @Arg("contact") contact: ContactInput,
-    @Ctx() ctx: IContext
-  ) {
-    return this.contactService.findContacts(contact, ctx);
+  async getContacts(@Ctx() ctx: IContext) {
+    return this.contactService.findContacts(ctx);
   }
 
   @Mutation(() => ContactResponse)

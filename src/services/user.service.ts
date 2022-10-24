@@ -1,5 +1,3 @@
-import { ForbiddenError } from "apollo-server-core";
-import { CookieOptions } from "express";
 import * as dotenv from "dotenv";
 import * as bcrypt from "bcrypt";
 
@@ -12,29 +10,13 @@ import {
   UserData,
   UserLogin,
 } from "../models";
-import { AppDataSource, signJwt, verifyJwt } from "../utils";
+import { AppDataSource, signJwt } from "../utils";
 
 dotenv.config();
 
 export class UserService {
   // Cookie Options
   private accessTokenExpiresIn = Number(process.env.ACCESS_TOKEN_EXPIRES_IN);
-  private refreshTokenExpiresIn = Number(process.env.REFRESH_TOKEN_EXPIRES_IN);
-  private cookieOptions: CookieOptions = {
-    httpOnly: true,
-    sameSite: "none",
-    secure: true,
-  };
-  private accessTokenCookieOptions = {
-    ...this.cookieOptions,
-    maxAge: this.accessTokenExpiresIn * 60 * 1000,
-    expires: new Date(Date.now() + this.accessTokenExpiresIn * 60 * 1000),
-  };
-  private refreshTokenCookieOptions = {
-    ...this.cookieOptions,
-    maxAge: this.refreshTokenExpiresIn * 60 * 1000,
-    expires: new Date(Date.now() + this.refreshTokenExpiresIn * 60 * 1000),
-  };
 
   private async findByEmail(email: string): Promise<UserLogin | null> {
     const userRepo = AppDataSource.getRepository(UserModel);
@@ -103,16 +85,16 @@ export class UserService {
   private signTokens(user: UserData) {
     const userId: string = user.id.toString();
 
-    const access_token = signJwt({ userId }, "accessTokenPrivateKey", {
-      expiresIn: `${this.accessTokenExpiresIn}m`,
-    });
-    const refresh_token = signJwt({ userId }, "refreshTokenPrivateKey", {
-      expiresIn: `${this.refreshTokenExpiresIn}m`,
-    });
+    const access_token = signJwt(
+      { userId },
+      {
+        expiresIn: `${this.accessTokenExpiresIn}m`,
+      }
+    );
 
-    return { access_token, refresh_token };
+    return access_token;
   }
-
+  //----------------------------------------------------Public function-----------------------------------------------------------
   // Register User
   public async signUpUser({
     username,
@@ -123,7 +105,36 @@ export class UserService {
   }: SignUpInput) {
     try {
       const message = "The user already exists, replace the email or username";
-
+      if (username.length < 3 || username.length > 30) {
+        return {
+          status: "Invalid",
+          message: "Username must be between 3 and 30 characters",
+        };
+      }
+      if (email.length < 3 || email.length > 40) {
+        return {
+          status: "Invalid",
+          message: "Email must be between 3 and 40 characters",
+        };
+      }
+      if (password.length < 8 || password.length > 40) {
+        return {
+          status: "Invalid",
+          message: "Password must be between 8 and 40 characters",
+        };
+      }
+      if (name.length < 1 || name.length > 30) {
+        return {
+          status: "Invalid",
+          message: "Name must be between 1 and 40 characters",
+        };
+      }
+      if (surname.length < 1 || surname.length > 30) {
+        return {
+          status: "Invalid",
+          message: "Surname must be between 1 and 40 characters",
+        };
+      }
       //Here take repository
       const userRepo = AppDataSource.getRepository(UserModel);
 
@@ -131,7 +142,7 @@ export class UserService {
       const userCheckUsername = await userRepo.findOne({ where: { username } });
       if (userCheckUsername) {
         return {
-          status: "invalid",
+          status: "Invalid",
           message,
         };
       }
@@ -139,7 +150,7 @@ export class UserService {
       const userCheckEmail = await userRepo.findOne({ where: { email } });
       if (userCheckEmail) {
         return {
-          status: "invalid",
+          status: "Invalid",
           message,
         };
       }
@@ -164,23 +175,31 @@ export class UserService {
         message: "User created!",
       };
     } catch (error: any) {
-      if (error.code === 11000) {
-        console.error("Email already exists");
-      }
-      console.error(error);
+      console.error("Error created: " + error);
     }
   }
 
   // Login User
-  public async loginUser(input: LoginInput, { res, req }: IContext) {
+  public async loginUser(input: LoginInput) {
     try {
       const message = "Invalid email or password";
-
+      if (input.email.length < 3 || input.email.length > 40) {
+        return {
+          status: "Invalid",
+          message: "Email must be between 3 and 40 characters",
+        };
+      }
+      if (input.password.length < 8 || input.password.length > 40) {
+        return {
+          status: "Invalid",
+          message: "Password must be between 8 and 40 characters",
+        };
+      }
       // 1. Find user by email
       const user = await this.findByEmail(input.email);
       if (!user) {
         return {
-          status: "invalid",
+          status: "Invalid",
           message,
         };
       }
@@ -189,21 +208,20 @@ export class UserService {
       const passwordHash = bcrypt.compareSync(input.password, user.password);
       if (!passwordHash) {
         return {
-          status: "invalid",
+          status: "Invalid",
           message,
         };
       }
 
       // 3. Sign JWT Tokens
-      const { access_token, refresh_token } = this.signTokens(user);
+      const access_token = this.signTokens(user);
 
-      // 4. Add Tokens to Context
-      res.cookie("access_token", access_token, this.accessTokenCookieOptions);
-      res.cookie(
-        "refresh_token",
-        refresh_token,
-        this.refreshTokenCookieOptions
-      );
+      if (!access_token) {
+        return {
+          status: "Invalid",
+          message,
+        };
+      }
 
       return {
         status: "success",
@@ -219,11 +237,11 @@ export class UserService {
     try {
       //Check have user
       const { message, id } = await autorization(req, res);
-      let user;
 
       //and if have we return it
       if (message == "success") {
-        user = await this.findById(id);
+        const user = await this.findById(id);
+
         return {
           status: "success",
           data: user,
@@ -231,76 +249,10 @@ export class UserService {
       }
 
       return {
-        status: "invalid",
-        message,
+        status: "Invalid",
+        message: "user not found",
       };
     } catch (error: any) {
-      console.error(error);
-    }
-  }
-
-  // Refresh Access Token
-  public async refreshAccessToken({ req, res }: IContext) {
-    try {
-      // Get the refresh token
-      const { refresh_token } = req.cookies;
-
-      // Validate the RefreshToken
-      const decoded = verifyJwt<{ userId: string }>(
-        refresh_token,
-        "refreshTokenPublicKey"
-      );
-
-      if (!decoded) {
-        throw new ForbiddenError("Could not refresh access token");
-      }
-
-      // Check if user exist and is verified
-      const userRepo = AppDataSource.getRepository(UserModel);
-      const user = await userRepo
-        .createQueryBuilder("users")
-        .where("users.id = :id", { id: decoded.userId })
-        .getOne();
-
-      if (!user) {
-        throw new ForbiddenError("Could not refresh access token");
-      }
-
-      // Sign new access token
-      const access_token = signJwt(
-        { userId: user.id },
-        "accessTokenPrivateKey",
-        {
-          expiresIn: `${this.accessTokenExpiresIn}m`,
-        }
-      );
-
-      // Send access token cookie
-      res.cookie("access_token", access_token, this.accessTokenCookieOptions);
-
-      return {
-        status: "success",
-        access_token,
-      };
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  // Logout User
-  public async logoutUser({ req, res, autorization }: IContext) {
-    try {
-      const { message } = await autorization(req, res);
-      if (message == "success") {
-        // Logout user
-        res.cookie("access_token", "", { maxAge: -1 });
-        res.cookie("refresh_token", "", { maxAge: -1 });
-
-        return { status: "success", message: "Logout" };
-      }
-
-      return { status: "invalid", message };
-    } catch (error) {
       console.error(error);
     }
   }
@@ -320,7 +272,7 @@ export class UserService {
         return { status: "success", message: "Logout" };
       }
 
-      return { status: "invalid", message };
+      return { status: "Invalid", message };
     } catch (error) {
       console.error(error);
     }
@@ -332,19 +284,61 @@ export class UserService {
     { req, res, autorization }: IContext
   ) {
     try {
+      if (input.username)
+        if (input.username.length < 3 || input.username.length > 30) {
+          return {
+            status: "Invalid",
+            message: "Username must be between 3 and 30 characters",
+          };
+        }
+      if (input.email)
+        if (input.email.length < 3 || input.email.length > 40) {
+          return {
+            status: "Invalid",
+            message: "Email must be between 3 and 40 characters",
+          };
+        }
+      if (input.password)
+        if (input.password.length < 8 || input.password.length > 40) {
+          return {
+            status: "Invalid",
+            message: "Password must be between 8 and 40 characters",
+          };
+        }
+      if (input.passwordNew)
+        if (input.passwordNew.length < 8 || input.passwordNew.length > 40) {
+          return {
+            status: "Invalid",
+            message: "Password must be between 8 and 40 characters",
+          };
+        }
+      if (input.name)
+        if (input.name.length < 1 || input.name.length > 30) {
+          return {
+            status: "Invalid",
+            message: "Name must be between 1 and 40 characters",
+          };
+        }
+      if (input.surname)
+        if (input.surname.length < 1 || input.surname.length > 30) {
+          return {
+            status: "Invalid",
+            message: "Surname must be between 1 and 40 characters",
+          };
+        }
       const { message, id } = await autorization(req, res);
 
       if (message == "success") {
         //Delete user
         const mess = await this.findByIdAndUpdate(id, input);
-        if (mess == "invalid") {
-          return { status: "invalid", message: "Password uncorrect" };
+        if (mess == "Invalid") {
+          return { status: "Invalid", message: "Password uncorrect" };
         }
 
         return { status: "success", message: "User update" };
       }
 
-      return { status: "invalid", message };
+      return { status: "Invalid", message };
     } catch (error) {
       console.error(error);
     }

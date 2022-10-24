@@ -1,40 +1,76 @@
+import { MessageModel } from "./message.model";
 import { Field, ID, InputType, ObjectType } from "type-graphql";
+
+import { UserModel } from "../User";
 
 @InputType()
 export class MessageInput {
   @Field(() => Number)
-  userId!: number;
+  senderMessage!: number;
+
+  @Field(() => String)
+  text!: string;
 
   @Field(() => Number)
-  contactId!: number;
+  chatId!: number;
 }
 
-@ObjectType()
-class MessageData {
+@InputType()
+export class MessageDeleteInput {
   @Field(() => ID)
   id!: number;
 
-  @Field()
-  username!: string;
+  @Field(() => Number)
+  senderMessage!: number;
+}
 
-  @Field()
-  email!: string;
+@InputType()
+export class MessageFindInput {
+  @Field(() => Number)
+  senderMessage: number;
 
-  @Field()
-  name!: string;
+  @Field(() => Number)
+  chatId!: number;
+}
 
-  @Field()
-  surname!: string;
+@InputType()
+export class MessageUpdateInput {
+  @Field(() => ID)
+  id!: number;
+
+  @Field(() => Number)
+  senderMessage: number;
+
+  @Field(() => String)
+  text!: string;
+}
+
+@ObjectType()
+export class MessageData {
+  @Field(() => ID)
+  id!: number;
+
+  @Field(() => UserModel)
+  senderMessage!: number;
+
+  @Field(() => String)
+  text!: string;
+
+  @Field(() => Number)
+  chatId!: number;
+
+  @Field(() => Date)
+  createdAt!: Date;
 }
 
 @ObjectType()
 export class MessageResponse {
-  @Field()
+  @Field(() => String)
   status!: string;
 
-  // @Field(() => [ContactData], { nullable: true })
-  // data?: ContactData[];
+  @Field(() => [MessageModel], { nullable: true })
+  data?: MessageModel[];
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   message?: string;
 }

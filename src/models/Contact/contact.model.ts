@@ -1,4 +1,3 @@
-import { UserModel } from "../User/user.model";
 import { Field, ID, ObjectType } from "type-graphql";
 import {
   CreateDateColumn,
@@ -9,6 +8,8 @@ import {
   JoinColumn,
   ManyToOne,
 } from "typeorm";
+
+import { UserModel } from "../User";
 
 @ObjectType()
 @Entity({ name: "contact" })

@@ -14,27 +14,27 @@ class ContactData {
   @Field(() => ID)
   id!: number;
 
-  @Field()
+  @Field(() => String)
   username!: string;
 
-  @Field()
+  @Field(() => String)
   email!: string;
 
-  @Field()
+  @Field(() => String)
   name!: string;
 
-  @Field()
+  @Field(() => String)
   surname!: string;
 }
 
 @ObjectType()
 export class ContactResponse {
-  @Field()
+  @Field(() => String)
   status!: string;
 
   @Field(() => [ContactData], { nullable: true })
   data?: ContactData[];
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   message?: string;
 }

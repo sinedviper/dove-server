@@ -11,8 +11,8 @@ export class ResolverChat {
   }
 
   @Query(() => ChatResponse)
-  async getChats(@Arg("chat") chat: ChatInput, @Ctx() ctx: IContext) {
-    return this.chatService.findChats(chat, ctx);
+  async getChats(@Ctx() ctx: IContext) {
+    return this.chatService.findChats(ctx);
   }
 
   @Mutation(() => ChatResponse)
@@ -21,7 +21,7 @@ export class ResolverChat {
   }
 
   @Mutation(() => ChatResponse)
-  async deleteChat(@Arg("chat") chat: ChatInput, @Ctx() ctx: IContext) {
-    return this.chatService.deleteChat(chat, ctx);
+  async deleteChat(@Arg("idChat") id: number, @Ctx() ctx: IContext) {
+    return this.chatService.deleteChat(id, ctx);
   }
 }

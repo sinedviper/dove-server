@@ -23,18 +23,13 @@ export class ResolverUser {
   }
 
   @Mutation(() => LoginResponse)
-  async loginUser(@Arg("input") loginInput: LoginInput, @Ctx() ctx: IContext) {
-    return this.userService.loginUser(loginInput, ctx);
+  async loginUser(@Arg("input") loginInput: LoginInput) {
+    return this.userService.loginUser(loginInput);
   }
 
   @Query(() => UserResponse)
   async getMe(@Ctx() ctx: IContext) {
     return this.userService.getMe(ctx);
-  }
-
-  @Query(() => UserResponse)
-  async logoutUser(@Ctx() ctx: IContext) {
-    return this.userService.logoutUser(ctx);
   }
 
   @Mutation(() => UserResponse)

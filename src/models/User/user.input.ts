@@ -3,67 +3,51 @@ import { IsEmail, MaxLength, MinLength } from "class-validator";
 
 @InputType()
 export class SignUpInput {
-  @Field()
+  @Field(() => String)
   username!: string;
 
-  @Field()
+  @Field(() => String)
   @IsEmail()
   email!: string;
 
-  @Field()
-  @MinLength(1, { message: "Name must be at least 1 characters long" })
-  @MaxLength(30, { message: "Name must be at most 30 characters long" })
+  @Field(() => String)
   name!: string;
 
-  @Field()
-  @MinLength(1, { message: "Surname must be at least 1 characters long" })
-  @MaxLength(30, { message: "Surname must be at most 30 characters long" })
+  @Field(() => String)
   surname!: string;
 
-  @Field()
-  @MinLength(8, { message: "Password must be at least 8 characters long" })
-  @MaxLength(32, { message: "Password must be at most 32 characters long" })
+  @Field(() => String)
   password!: string;
 }
 
 @InputType()
 export class UpdateInput {
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   username?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   email?: string;
 
-  @Field({ nullable: true })
-  @MinLength(1, { message: "Name must be at least 1 characters long" })
-  @MaxLength(30, { message: "Name must be at most 30 characters long" })
+  @Field(() => String, { nullable: true })
   name?: string;
 
-  @Field({ nullable: true })
-  @MinLength(1, { message: "Surname must be at least 1 characters long" })
-  @MaxLength(30, { message: "Surname must be at most 30 characters long" })
+  @Field(() => String, { nullable: true })
   surname?: string;
 
-  @Field({ nullable: true })
-  @MinLength(8, { message: "Password must be at least 8 characters long" })
-  @MaxLength(32, { message: "Password must be at most 32 characters long" })
+  @Field(() => String, { nullable: true })
   password?: string;
 
-  @Field({ nullable: true })
-  @MinLength(8, { message: "Password must be at least 8 characters long" })
-  @MaxLength(32, { message: "Password must be at most 32 characters long" })
+  @Field(() => String, { nullable: true })
   passwordNew?: string;
 }
 
 @InputType()
 export class LoginInput {
-  @Field()
+  @Field(() => String)
   @IsEmail()
   email!: string;
 
-  @Field()
-  @MinLength(8, { message: "Invalid email or password" })
-  @MaxLength(32, { message: "Invalid email or password" })
+  @Field(() => String)
   password!: string;
 }
 
@@ -72,51 +56,51 @@ export class UserData {
   @Field(() => ID)
   id!: number;
 
-  @Field()
+  @Field(() => String)
   username!: string;
 
-  @Field()
+  @Field(() => String)
   email!: string;
 
-  @Field()
+  @Field(() => String)
   name!: string;
 
-  @Field()
+  @Field(() => String)
   surname!: string;
 
-  @Field()
+  @Field(() => Date)
   createdAt!: Date;
 
-  @Field()
+  @Field(() => Date)
   updatedAt!: Date;
 }
 
 @ObjectType()
 export class UserLogin extends UserData {
-  @Field()
+  @Field(() => String)
   password!: string;
 }
 
 @ObjectType()
 export class UserResponse {
-  @Field()
+  @Field(() => String)
   status!: string;
 
-  @Field({ nullable: true })
+  @Field(() => UserData, { nullable: true })
   data?: UserData;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   message?: string;
 }
 
 @ObjectType()
 export class LoginResponse {
-  @Field()
+  @Field(() => String)
   status!: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   message?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   access_token?: string;
 }
