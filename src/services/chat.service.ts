@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 
 import { invalid, success } from "../constants";
 import { IContext } from "../interfaces";
-import { ChatInput, UserData, ChatModel } from "../models";
+import { ChatInput, UserData, ChatModel, MessageModel, Chats } from "../models";
 import { AppDataSource } from "../utils";
 
 dotenv.config();
@@ -126,9 +126,10 @@ export class ChatService {
   }
 
   //find chat User
-  private async findChatUser(sender: number): Promise<UserData[] | string> {
+  private async findChatUser(sender: number): Promise<Chats[] | string> {
     //search table
     const chatRepo = AppDataSource.getRepository(ChatModel);
+    const messageRepo = AppDataSource.getRepository(MessageModel);
     //take table
     const findChatSender = await chatRepo
       .createQueryBuilder("chat")
@@ -136,6 +137,28 @@ export class ChatService {
       .andWhere("chat.senderChat = :chat", { chat: false })
       .leftJoinAndSelect("chat.recipient", "recipient")
       .getMany();
+
+    const chatSender = await Promise.all(
+      findChatSender.map(async (obj) => {
+        const findMessage = await messageRepo
+          .createQueryBuilder("message")
+          .where("message.chatId = :chatId", { chatId: obj.id })
+          .leftJoinAndSelect("message.senderMessage", "senderMessage")
+          .leftJoinAndSelect("message.chatId", "chatId")
+          .getMany();
+
+        return {
+          ...obj,
+          lastMessage: findMessage
+            .sort(
+              (a: any, b: any) =>
+                Date.parse(a.createdAt) - Date.parse(b.createdAt)
+            )
+            .slice(-1),
+        };
+      })
+    );
+
     //take table
     const findChatReceipt = await chatRepo
       .createQueryBuilder("chat")
@@ -143,16 +166,42 @@ export class ChatService {
       .andWhere("chat.recipientChat = :chat", { chat: false })
       .leftJoinAndSelect("chat.sender", "sender")
       .getMany();
+
+    const chatReceipt = await Promise.all(
+      findChatReceipt.map(async (obj) => {
+        const findMessage = await messageRepo
+          .createQueryBuilder("message")
+          .where("message.chatId = :chatId", { chatId: obj.id })
+          .leftJoinAndSelect("message.senderMessage", "senderMessage")
+          .leftJoinAndSelect("message.chatId", "chatId")
+          .getMany();
+
+        return {
+          ...obj,
+          lastMessage: findMessage
+            .sort(
+              (a: any, b: any) =>
+                Date.parse(a.createdAt) - Date.parse(b.createdAt)
+            )
+            .slice(-1),
+        };
+      })
+    );
+
     //optimization chats
-    const rec = findChatReceipt.map((obj) => {
-      return obj.sender as unknown as UserData;
-    }) as UserData[];
+    const rec = chatReceipt.map((obj) => ({
+      id: obj.id,
+      user: obj.sender,
+      lastMessage: obj.lastMessage[0],
+    }));
 
-    const sen = findChatSender.map((obj) => {
-      return obj.recipient as unknown as UserData;
-    }) as UserData[];
+    const sen = chatSender.map((obj) => ({
+      id: obj.id,
+      user: obj.recipient,
+      lastMessage: obj.lastMessage[0],
+    }));
 
-    return [...sen, ...rec];
+    return [...sen, ...rec] as unknown as Chats[];
   }
   //-------------------------------------------------------------Public function----------------------------------------------
   //Add chat

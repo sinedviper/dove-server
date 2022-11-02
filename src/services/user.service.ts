@@ -106,10 +106,10 @@ export class UserService {
   }: SignUpInput) {
     try {
       const message = "The user already exists, replace the email or username";
-      if (username.length < 3 || username.length > 30) {
+      if (username.length < 3 || username.length > 40) {
         return {
           status: invalid,
-          message: "Username must be between 3 and 30 characters",
+          message: "Username must be between 3 and 40 characters",
         };
       }
       if (email.length < 3 || email.length > 40) {

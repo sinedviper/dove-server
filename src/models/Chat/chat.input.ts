@@ -1,6 +1,7 @@
 import { Field, InputType, ObjectType } from "type-graphql";
 
 import { UserData } from "../User";
+import { MessageData } from "../Message/message.input";
 
 @InputType()
 export class ChatInput {
@@ -12,13 +13,25 @@ export class ChatInput {
 }
 
 @ObjectType()
+export class Chats {
+  @Field(() => Number)
+  public id!: number;
+
+  @Field(() => UserData)
+  public user!: UserData;
+
+  @Field(() => MessageData, { nullable: true })
+  public lastMessage?: MessageData;
+}
+
+@ObjectType()
 export class ChatResponse {
   @Field(() => String)
-  status!: string;
+  public status!: string;
 
-  @Field(() => [UserData], { nullable: true })
-  data?: UserData[];
+  @Field(() => [Chats], { nullable: true })
+  public data?: Chats[];
 
   @Field(() => String, { nullable: true })
-  message?: string;
+  public message?: string;
 }
