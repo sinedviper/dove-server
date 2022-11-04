@@ -25,6 +25,9 @@ class ContactData {
 
   @Field(() => String)
   surname!: string;
+
+  @Field(() => Date)
+  createdAt!: Date;
 }
 
 @ObjectType()
