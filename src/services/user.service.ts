@@ -30,11 +30,13 @@ export class UserService {
 
   private async findById(id: number): Promise<UserData | null> {
     const userRepo = AppDataSource.getRepository(UserModel);
+
     const user = userRepo
       .createQueryBuilder("users")
       .where("users.id = :id", { id })
       .getOne();
-    return user as unknown as UserData;
+
+    return (await user) as unknown as UserData;
   }
 
   private async findByIdAndDelete(id: number): Promise<string> {
@@ -63,9 +65,10 @@ export class UserService {
 
     newUser = input.name ? { ...newUser, name: input.name } : { ...newUser };
 
-    newUser = input.surname
-      ? { ...newUser, surname: input.surname }
-      : { ...newUser };
+    newUser =
+      input.surname || input.surname == ""
+        ? { ...newUser, surname: input.surname }
+        : { ...newUser };
 
     newUser = input.username
       ? { ...newUser, username: input.username }
@@ -130,10 +133,10 @@ export class UserService {
           message: "Name must be between 1 and 40 characters",
         };
       }
-      if (surname.length < 1 || surname.length > 30) {
+      if (surname.length > 30) {
         return {
           status: invalid,
-          message: "Surname must be between 1 and 40 characters",
+          message: "Surname must be not more 40 characters",
         };
       }
       //Here take repository
@@ -314,26 +317,26 @@ export class UserService {
           };
         }
       if (input.name)
-        if (input.name.length < 1 || input.name.length > 30) {
+        if (input.name.length < 1 || input.name.length > 40) {
           return {
             status: invalid,
             message: "Name must be between 1 and 40 characters",
           };
         }
       if (input.surname)
-        if (input.surname.length < 1 || input.surname.length > 30) {
+        if (input.surname.length > 40) {
           return {
             status: invalid,
-            message: "Surname must be between 1 and 40 characters",
+            message: "Surname must be not more 40 characters",
           };
         }
       const { message, id } = await autorization(req, res);
 
       if (message == success) {
-        //Delete user
+        //Update user
         const mess = await this.findByIdAndUpdate(id, input);
         if (mess == invalid) {
-          return { status: invalid, message: "Password uncorrect" };
+          return { status: invalid, message: "Update faile" };
         }
 
         return { status: success, message: "User update" };

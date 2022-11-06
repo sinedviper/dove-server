@@ -32,9 +32,9 @@ export class UserModel extends BaseEntity {
   @Column()
   public name!: string;
 
-  @Field()
+  @Field(() => String, { nullable: true })
   @Column()
-  public surname!: string;
+  public surname?: string;
 
   @Field()
   @Column()

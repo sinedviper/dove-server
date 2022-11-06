@@ -11,8 +11,8 @@ export class SignUpInput {
   @Field(() => String)
   name!: string;
 
-  @Field(() => String)
-  surname!: string;
+  @Field(() => String, { nullable: true })
+  surname?: string;
 
   @Field(() => String)
   password!: string;
@@ -62,8 +62,8 @@ export class UserData {
   @Field(() => String)
   name!: string;
 
-  @Field(() => String)
-  surname!: string;
+  @Field(() => String, { nullable: true })
+  surname?: string;
 
   @Field(() => Date)
   createdAt!: Date;

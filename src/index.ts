@@ -26,7 +26,7 @@ dotenv.config();
     listen: { port: Number(process.env.PORT) },
   })
     .then(({ url }) => {
-      console.log(`Server ready at http://localhost:${url}graphql`);
+      console.log(`Server ready at ${url}graphql`);
     })
     .catch((err) => {
       console.error("ErrorServer: " + err);
