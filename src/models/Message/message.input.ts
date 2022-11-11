@@ -1,6 +1,6 @@
 import { Field, ID, InputType, ObjectType } from "type-graphql";
 
-import { UserModel } from "../User";
+import { UserData } from "../User";
 import { MessageModel } from "./message.model";
 
 @InputType()
@@ -19,6 +19,9 @@ export class MessageInput {
 export class MessageDeleteInput {
   @Field(() => ID)
   id!: number;
+
+  @Field(() => Number)
+  chatId!: number;
 
   @Field(() => Number)
   senderMessage!: number;
@@ -50,7 +53,7 @@ export class MessageData {
   @Field(() => ID)
   id!: number;
 
-  @Field(() => UserModel)
+  @Field(() => UserData)
   senderMessage!: number;
 
   @Field(() => String)

@@ -20,7 +20,7 @@ export class MessageService {
     senderMessage,
     text,
     chatId,
-  }: MessageInput): Promise<string> {
+  }: MessageInput): Promise<MessageData[] | string> {
     if (text.length > 1000 || text.length < 1) {
       return invalid;
     }
@@ -35,17 +35,32 @@ export class MessageService {
     //save
     await messageRepo.save(message);
 
-    return success;
+    const findMessage = await messageRepo
+      .createQueryBuilder("message")
+      .where("message.chatId = :chatId", { chatId })
+      .leftJoinAndSelect("message.senderMessage", "senderMessage")
+      .leftJoinAndSelect("message.chatId", "chatId")
+      .getMany();
+
+    if (!findMessage) {
+      return invalid;
+    }
+
+    return findMessage?.sort(
+      (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
+    ) as undefined as MessageData[];
   }
 
   //Delete chat to user
-  private async findByIdAndDelete(id: number): Promise<string> {
+  private async findByIdAndDelete(
+    input: MessageDeleteInput
+  ): Promise<MessageData[] | string> {
     //search table
     const messageRepo = AppDataSource.getRepository(MessageModel);
     //find values
     let message = await messageRepo
       .createQueryBuilder("message")
-      .where("message.id = :id", { id })
+      .where("message.id = :id", { id: input.id })
       .getOne();
 
     if (!message) {
@@ -55,10 +70,24 @@ export class MessageService {
     await messageRepo
       .createQueryBuilder("message")
       .delete()
-      .where("message.id = :id", { id })
+      .where("message.id = :id", { id: input.id })
       .execute();
 
-    return success;
+    //find values
+    const findMessage = await messageRepo
+      .createQueryBuilder("message")
+      .where("message.chatId = :chatId", { chatId: input.chatId })
+      .leftJoinAndSelect("message.senderMessage", "senderMessage")
+      .leftJoinAndSelect("message.chatId", "chatId")
+      .getMany();
+
+    if (!findMessage) {
+      return invalid;
+    }
+
+    return findMessage?.sort(
+      (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
+    ) as undefined as MessageData[];
   }
 
   private async findByIdAndUpdate({
@@ -128,7 +157,7 @@ export class MessageService {
           return { status: invalid, message: "Can't add message" };
         }
 
-        return { status: success, message: "Message add" };
+        return { status: success, data, message: "Message add" };
       }
 
       return { status: invalid, message: "Invalid user" };
@@ -147,11 +176,11 @@ export class MessageService {
 
       if (message == success && id == input.senderMessage) {
         //Delete fucntion message
-        const data = await this.findByIdAndDelete(input.id);
+        const data = await this.findByIdAndDelete(input);
         if (data == invalid) {
           return { status: invalid, message: "Message not delete" };
         }
-        return { status: success, message: "Message delete" };
+        return { status: success, data, message: "Message delete" };
       }
 
       return { status: invalid, message: "Invalid user" };

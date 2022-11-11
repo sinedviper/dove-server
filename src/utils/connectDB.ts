@@ -12,5 +12,6 @@ export const AppDataSource = new DataSource({
   password: process.env.PASSWORD,
   database: process.env.DATABASE,
   synchronize: true,
+  charset: "utf8mb4",
   entities: [UserModel, ContactModel, ChatModel, MessageModel],
 });

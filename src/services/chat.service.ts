@@ -25,7 +25,7 @@ export class ChatService {
         await chatRepo
           .createQueryBuilder()
           .update(ChatModel)
-          .set({ senderChat: true })
+          .set({ senderChat: false })
           .where("chat.sender = :sender", { sender: input.sender })
           .andWhere("chat.recipient = :recipient", {
             recipient: input.recipient,
@@ -33,7 +33,7 @@ export class ChatService {
           .execute();
         return success;
       }
-      return invalid;
+      return success;
     } else if (!findChat) {
       findChat = await chatRepo
         .createQueryBuilder("chat")
@@ -48,7 +48,7 @@ export class ChatService {
           await chatRepo
             .createQueryBuilder()
             .update(ChatModel)
-            .set({ recipientChat: true })
+            .set({ recipientChat: false })
             .where("chat.sender = :sender", { sender: input.recipient })
             .andWhere("chat.recipient = :recipient", {
               recipient: input.sender,
@@ -215,8 +215,12 @@ export class ChatService {
         if (data == invalid) {
           return { status: invalid, message: "Can't add" };
         }
+        const chats = await this.findChatUser(id);
+        if (chats === invalid) {
+          return { status: invalid, message: "Chat not delete" };
+        }
 
-        return { status: success, message: "Chat add" };
+        return { status: success, data: chats };
       }
 
       return { status: invalid, message };
@@ -236,7 +240,14 @@ export class ChatService {
         if (data == invalid) {
           return { status: invalid, message: "Chat not delete" };
         }
-        return { status: success, message: "Chat delete" };
+
+        //Find chats
+        const chats = await this.findChatUser(userId);
+        if (chats === invalid) {
+          return { status: invalid, message: "Chat not delete" };
+        }
+
+        return { status: success, data: chats };
       }
 
       return { status: invalid, message };

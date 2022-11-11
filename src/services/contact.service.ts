@@ -39,7 +39,7 @@ export class ContactService {
   private async findByIdAndDelete({
     userId,
     contactId,
-  }: ContactInput): Promise<string> {
+  }: ContactInput): Promise<UserData[] | string> {
     //search table
     const contactRepo = AppDataSource.getRepository(ContactModel);
     //find values
@@ -60,7 +60,19 @@ export class ContactService {
       .andWhere("contact.contactId = :contactId", { contactId })
       .execute();
 
-    return success;
+    const findContacts = await contactRepo
+      .createQueryBuilder("contact")
+      .where("contact.userId = :userId", { userId })
+      .leftJoinAndSelect("contact.contactId", "contactId")
+      .getMany();
+
+    if (!findContacts) {
+      return invalid;
+    }
+    //give contacts
+    return findContacts.map((obj) => {
+      return obj.contactId as unknown as UserData;
+    }) as UserData[];
   }
 
   //find contact User
@@ -122,7 +134,7 @@ export class ContactService {
           return { status: invalid, message: "Can't delete" };
         }
 
-        return { status: success, message: "Contact delete" };
+        return { status: success, data: mess, message: "Contact delete" };
       }
 
       return { status: invalid, message };
