@@ -1,51 +1,36 @@
 import { Field, ID, InputType, ObjectType } from "type-graphql";
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
+import { ChatModel } from "../Chat";
 
-import { UserData } from "../User";
+import { UserData, UserModel } from "../User";
 import { MessageModel } from "./message.model";
 
 @InputType()
 export class MessageInput {
-  @Field(() => Number)
-  senderMessage!: number;
-
-  @Field(() => String)
-  text!: string;
-
-  @Field(() => Number)
-  chatId!: number;
-}
-
-@InputType()
-export class MessageDeleteInput {
-  @Field(() => ID)
-  id!: number;
-
-  @Field(() => Number)
-  chatId!: number;
+  @Field(() => ID, { nullable: true })
+  id?: number;
 
   @Field(() => Number)
   senderMessage!: number;
-}
 
-@InputType()
-export class MessageFindInput {
-  @Field(() => Number)
-  senderMessage: number;
+  @Field(() => String, { nullable: true })
+  text?: string;
+
+  @Field(() => Number, { nullable: true })
+  reply?: number;
 
   @Field(() => Number)
   chatId!: number;
-}
-
-@InputType()
-export class MessageUpdateInput {
-  @Field(() => ID)
-  id!: number;
-
-  @Field(() => Number)
-  senderMessage: number;
-
-  @Field(() => String)
-  text!: string;
 }
 
 @ObjectType()
@@ -59,8 +44,26 @@ export class MessageData {
   @Field(() => String)
   text!: string;
 
-  @Field(() => Number)
+  @Field(() => ChatModel)
   chatId!: number;
+
+  @Field(() => MessageReply, { nullable: true })
+  reply?: number;
+
+  @Field(() => Date)
+  createdAt!: Date;
+}
+
+@ObjectType()
+export class MessageReply {
+  @Field(() => ID)
+  id!: number;
+
+  @Field(() => UserData)
+  senderMessage!: number;
+
+  @Field(() => String)
+  text!: string;
 
   @Field(() => Date)
   createdAt!: Date;
@@ -71,8 +74,8 @@ export class MessageResponse {
   @Field(() => String)
   status!: string;
 
-  @Field(() => [MessageModel], { nullable: true })
-  data?: MessageModel[];
+  @Field(() => [MessageData], { nullable: true })
+  data?: MessageData[];
 
   @Field(() => String, { nullable: true })
   message?: string;

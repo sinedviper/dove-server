@@ -12,7 +12,7 @@ export class ContactService {
   private async findByIdAndAdd({
     userId,
     contactId,
-  }: ContactInput): Promise<string> {
+  }: ContactInput): Promise<UserData[] | string> {
     //search table
     const contactRepo = AppDataSource.getRepository(ContactModel);
     //find values
@@ -32,7 +32,19 @@ export class ContactService {
     });
     await contactRepo.save(contact);
 
-    return success;
+    const findContacts = await contactRepo
+      .createQueryBuilder("contact")
+      .where("contact.userId = :userId", { userId })
+      .leftJoinAndSelect("contact.contactId", "contactId")
+      .getMany();
+
+    if (!findContacts) {
+      return invalid;
+    }
+    //give contacts
+    return findContacts.map((obj) => {
+      return obj.contactId as unknown as UserData;
+    }) as UserData[];
   }
 
   //Delete contact to user
@@ -106,11 +118,12 @@ export class ContactService {
       if (message == success && id == input.userId) {
         //Add function contact
         const mess = await this.findByIdAndAdd(input);
+
         if (mess == invalid) {
           return { status: invalid, message: "Can't add" };
         }
 
-        return { status: success, message: "Contact add" };
+        return { status: success, data: mess, message: "Contact add" };
       }
 
       return { status: invalid, message };
@@ -130,6 +143,7 @@ export class ContactService {
       if (message == success && id == input.userId) {
         //Delete fucntion contact
         const mess = await this.findByIdAndDelete(input);
+
         if (mess == invalid) {
           return { status: invalid, message: "Can't delete" };
         }

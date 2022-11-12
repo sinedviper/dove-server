@@ -33,10 +33,25 @@ export class UpdateInput {
   surname?: string;
 
   @Field(() => String, { nullable: true })
+  bio?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  theme?: boolean;
+
+  @Field(() => Boolean, { nullable: true })
+  animation?: boolean;
+
+  @Field(() => String, { nullable: true })
   password?: string;
 
   @Field(() => String, { nullable: true })
   passwordNew?: string;
+}
+
+@InputType()
+export class UpdateInputOnline {
+  @Field(() => Date)
+  online!: String;
 }
 
 @InputType()
@@ -64,6 +79,18 @@ export class UserData {
 
   @Field(() => String, { nullable: true })
   surname?: string;
+
+  @Field(() => Date)
+  online!: Date;
+
+  @Field(() => String, { nullable: true })
+  bio?: string;
+
+  @Field(() => Boolean)
+  theme!: boolean;
+
+  @Field(() => Boolean)
+  animation!: boolean;
 
   @Field(() => Date)
   createdAt!: Date;

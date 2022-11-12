@@ -33,6 +33,7 @@ export class ChatService {
           .execute();
         return success;
       }
+
       return success;
     } else if (!findChat) {
       findChat = await chatRepo
@@ -56,7 +57,7 @@ export class ChatService {
             .execute();
           return success;
         }
-        return invalid;
+        return success;
       }
     }
     //create chat
@@ -217,7 +218,7 @@ export class ChatService {
         }
         const chats = await this.findChatUser(id);
         if (chats === invalid) {
-          return { status: invalid, message: "Chat not delete" };
+          return { status: invalid, message: "Chat no search" };
         }
 
         return { status: success, data: chats };
@@ -244,7 +245,7 @@ export class ChatService {
         //Find chats
         const chats = await this.findChatUser(userId);
         if (chats === invalid) {
-          return { status: invalid, message: "Chat not delete" };
+          return { status: invalid, message: "Chat no search" };
         }
 
         return { status: success, data: chats };

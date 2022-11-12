@@ -9,6 +9,7 @@ import {
   UpdateInput,
   UserData,
   UserLogin,
+  UpdateInputOnline,
 } from "../models";
 import { AppDataSource, signJwt } from "../utils";
 import { invalid, success } from "../constants";
@@ -28,19 +29,24 @@ export class UserService {
     return user as unknown as UserLogin;
   }
 
-  private async findById(id: number): Promise<UserData | null> {
+  private async findById(id: number): Promise<UserData | string> {
     const userRepo = AppDataSource.getRepository(UserModel);
 
-    const user = userRepo
+    const user = await userRepo
       .createQueryBuilder("users")
       .where("users.id = :id", { id })
       .getOne();
 
-    return (await user) as unknown as UserData;
+    if (!user) {
+      return invalid;
+    }
+
+    return user as unknown as UserData;
   }
 
-  private async findByIdAndDelete(id: number): Promise<string> {
+  private async findByIdAndDelete(id: number): Promise<UserData | string> {
     const userRepo = AppDataSource.getRepository(UserModel);
+
     await userRepo.delete({ id });
 
     return success;
@@ -49,9 +55,18 @@ export class UserService {
   private async findByIdAndUpdate(
     id: number,
     input: UpdateInput
-  ): Promise<string> {
+  ): Promise<string | UserData> {
     const userRepo = AppDataSource.getRepository(UserModel);
+
+    if (!userRepo) {
+      return invalid;
+    }
     const user = await userRepo.findOne({ where: { id } });
+
+    if (!user) {
+      return invalid;
+    }
+
     let newUser = {};
     if (input.password && input.passwordNew) {
       const passwordHash = bcrypt.compareSync(input.password, user.password);
@@ -73,12 +88,47 @@ export class UserService {
     newUser = input.username
       ? { ...newUser, username: input.username }
       : { ...newUser };
+
     newUser = input.email ? { ...newUser, email: input.email } : { ...newUser };
+
+    newUser = input.bio ? { ...newUser, bio: input.bio } : { ...newUser };
+
+    newUser = input.theme ? { ...newUser, theme: input.theme } : { ...newUser };
+
+    newUser = input.animation
+      ? { ...newUser, animation: input.animation }
+      : { ...newUser };
 
     await userRepo
       .createQueryBuilder()
       .update(UserModel)
       .set({ ...newUser })
+      .where("id = :id", { id })
+      .execute();
+
+    const userUpdate = await userRepo
+      .createQueryBuilder("users")
+      .where("users.id = :id", { id })
+      .getOne();
+
+    if (!userUpdate) {
+      return invalid;
+    }
+
+    return userUpdate as unknown as UserData;
+  }
+
+  private async findByIdAndUpdateOnline(id: number): Promise<string> {
+    const userRepo = AppDataSource.getRepository(UserModel);
+
+    if (!userRepo) {
+      return invalid;
+    }
+
+    await userRepo
+      .createQueryBuilder()
+      .update(UserModel)
+      .set({ online: new Date() })
       .where("id = :id", { id })
       .execute();
 
@@ -167,6 +217,8 @@ export class UserService {
         email,
         name,
         surname,
+        online: new Date(),
+        theme: false,
         password: String(passwordHash),
       });
 
@@ -335,6 +387,32 @@ export class UserService {
       if (message == success) {
         //Update user
         const mess = await this.findByIdAndUpdate(id, input);
+        if (mess == invalid) {
+          return { status: invalid, message: "Update faile" };
+        }
+
+        return { status: success, data: mess, message: "User update" };
+      }
+
+      return { status: invalid, message };
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  //Update User
+  public async updateUserOnline(
+    input: UpdateInputOnline,
+    { req, res, autorization }: IContext
+  ) {
+    try {
+      const { message, id } = await autorization(req, res);
+
+      if (message == success) {
+        if (input.online !== "ping") {
+          return { status: invalid, message: "Uncorrect" };
+        }
+        //Update user
+        const mess = await this.findByIdAndUpdateOnline(id);
         if (mess == invalid) {
           return { status: invalid, message: "Update faile" };
         }

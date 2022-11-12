@@ -36,6 +36,22 @@ export class UserModel extends BaseEntity {
   @Column()
   public surname?: string;
 
+  @Field(() => Date)
+  @Column()
+  public online!: Date;
+
+  @Field(() => String, { nullable: true })
+  @Column()
+  public bio?: string;
+
+  @Field(() => Boolean)
+  @Column()
+  public theme!: boolean;
+
+  @Field(() => Boolean)
+  @Column()
+  public animation!: boolean;
+
   @Field()
   @Column()
   public password!: string;

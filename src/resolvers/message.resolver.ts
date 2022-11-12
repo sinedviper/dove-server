@@ -1,13 +1,6 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
-import {
-  MessageModel,
-  MessageResponse,
-  MessageInput,
-  MessageUpdateInput,
-  MessageFindInput,
-  MessageDeleteInput,
-} from "../models";
+import { MessageModel, MessageResponse, MessageInput } from "../models";
 import { MessageService } from "../services";
 import { IContext } from "../interfaces";
 
@@ -19,7 +12,7 @@ export class ResolverMessage {
 
   @Query(() => MessageResponse)
   async getMessages(
-    @Arg("message") message: MessageFindInput,
+    @Arg("message") message: MessageInput,
     @Ctx() ctx: IContext
   ) {
     return this.messageService.findMessages(message, ctx);
@@ -27,7 +20,7 @@ export class ResolverMessage {
 
   @Mutation(() => MessageResponse)
   async updateMessage(
-    @Arg("message") message: MessageUpdateInput,
+    @Arg("message") message: MessageInput,
     @Ctx() ctx: IContext
   ) {
     return this.messageService.updateMessage(message, ctx);
@@ -43,9 +36,9 @@ export class ResolverMessage {
 
   @Mutation(() => MessageResponse)
   async deleteMessage(
-    @Arg("message") input: MessageDeleteInput,
+    @Arg("message") message: MessageInput,
     @Ctx() ctx: IContext
   ) {
-    return this.messageService.deleteMessage(input, ctx);
+    return this.messageService.deleteMessage(message, ctx);
   }
 }

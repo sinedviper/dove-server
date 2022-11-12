@@ -8,11 +8,12 @@ import {
   JoinColumn,
   ManyToOne,
   Column,
+  OneToMany,
+  OneToOne,
 } from "typeorm";
 
 import { ChatModel } from "../Chat";
 import { UserModel } from "../User";
-
 @ObjectType()
 @Entity({ name: "message" })
 export class MessageModel extends BaseEntity {
@@ -34,6 +35,13 @@ export class MessageModel extends BaseEntity {
   @JoinColumn({ name: "chatId" })
   public chatId!: Number;
 
+  @Field(() => MessageModel, { nullable: true })
+  @OneToOne(() => MessageModel, (reply: MessageModel) => reply.id, {
+    nullable: true,
+  })
+  @JoinColumn({ name: "reply" })
+  public reply?: MessageModel;
+
   @Field()
   @CreateDateColumn()
   public createdAt!: Date;
@@ -41,4 +49,9 @@ export class MessageModel extends BaseEntity {
   @Field()
   @UpdateDateColumn()
   public updatedAt!: Date;
+
+  // @OneToMany(() => MessageModel, (reply: MessageModel) => reply.reply, {
+  //   nullable: true,
+  // })
+  // replyId: MessageModel[];
 }

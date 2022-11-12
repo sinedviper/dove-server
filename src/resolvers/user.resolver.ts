@@ -1,4 +1,12 @@
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import { UpdateInputOnline } from "./../models/User/user.input";
+import {
+  Arg,
+  Ctx,
+  Mutation,
+  Query,
+  Resolver,
+  Subscription,
+} from "type-graphql";
 
 import {
   LoginInput,
@@ -40,5 +48,13 @@ export class ResolverUser {
   @Mutation(() => UserResponse)
   async updateUser(@Arg("input") input: UpdateInput, @Ctx() ctx: IContext) {
     return this.userService.updateUser(input, ctx);
+  }
+
+  @Mutation(() => UserResponse)
+  async updateUserOnline(
+    @Arg("input") input: UpdateInputOnline,
+    @Ctx() ctx: IContext
+  ) {
+    return this.userService.updateUserOnline(input, ctx);
   }
 }
