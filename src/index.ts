@@ -1,8 +1,13 @@
 import "reflect-metadata";
 import * as dotenv from "dotenv";
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
 import { buildTypeDefsAndResolvers } from "type-graphql/dist/utils/buildTypeDefsAndResolvers";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import { expressMiddleware } from "@apollo/server/express4";
+import http from "http";
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
 
 import {
   ResolverUser,
@@ -20,13 +25,32 @@ dotenv.config();
     resolvers: [ResolverUser, ResolverContact, ResolverChat, ResolverMessage],
   });
 
-  const server = new ApolloServer({ typeDefs, resolvers });
-  await startStandaloneServer(server, {
-    context: async ({ req, res }) => ({ req, res, autorization }),
-    listen: { port: Number(process.env.PORT) },
-  })
-    .then(({ url }) => {
-      console.log(`Server ready at ${url}graphql`);
+  const app = express();
+  const httpServer = http.createServer(app);
+
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+  });
+
+  await server.start();
+  app.use(
+    "/graphql",
+    cors<cors.CorsRequest>(),
+    bodyParser.json(),
+    expressMiddleware(server, {
+      context: async ({ req, res }) => ({ req, res, autorization }),
+    })
+  );
+
+  await new Promise<void>((resolve) =>
+    httpServer.listen({ port: Number(process.env.PORT) }, resolve)
+  )
+    .then(() => {
+      console.log(
+        `Server ready at http://localhost:${Number(process.env.PORT)}/graphql`
+      );
     })
     .catch((err) => {
       console.error("ErrorServer: " + err);
