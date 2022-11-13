@@ -3,134 +3,134 @@ import { Field, ID, InputType, ObjectType } from "type-graphql";
 @InputType()
 export class SignUpInput {
   @Field(() => String)
-  username!: string;
+  public username!: string;
 
   @Field(() => String)
-  email!: string;
+  public email!: string;
 
   @Field(() => String)
-  name!: string;
+  public name!: string;
 
   @Field(() => String, { nullable: true })
-  surname?: string;
+  public surname?: string;
 
   @Field(() => String)
-  password!: string;
+  public password!: string;
 }
 
 @InputType()
 export class UpdateInput {
   @Field(() => String, { nullable: true })
-  username?: string;
+  public username?: string;
 
   @Field(() => String, { nullable: true })
-  email?: string;
+  public email?: string;
 
   @Field(() => String, { nullable: true })
-  name?: string;
+  public name?: string;
 
   @Field(() => String, { nullable: true })
-  surname?: string;
+  public surname?: string;
 
   @Field(() => String, { nullable: true })
-  bio?: string;
+  public bio?: string;
 
   @Field(() => Boolean, { nullable: true })
-  theme?: boolean;
+  public theme?: boolean;
 
   @Field(() => Boolean, { nullable: true })
-  animation?: boolean;
+  public animation?: boolean;
 
   @Field(() => String, { nullable: true })
-  password?: string;
+  public password?: string;
 
   @Field(() => String, { nullable: true })
-  passwordNew?: string;
+  public passwordNew?: string;
 }
 
 @InputType()
 export class UpdateInputOnline {
   @Field(() => Date)
-  online!: String;
+  public online!: String;
 }
 
 @InputType()
 export class LoginInput {
   @Field(() => String)
-  email!: string;
+  public email!: string;
 
   @Field(() => String)
-  password!: string;
+  public password!: string;
 }
 
 @ObjectType()
 export class UserData {
   @Field(() => ID)
-  id!: number;
+  public id!: number;
 
   @Field(() => String)
-  username!: string;
+  public username!: string;
 
   @Field(() => String)
-  email!: string;
+  public email!: string;
 
   @Field(() => String)
-  name!: string;
+  public name!: string;
 
   @Field(() => String, { nullable: true })
-  surname?: string;
+  public surname?: string;
 
   @Field(() => Date)
-  online!: Date;
+  public online!: Date;
 
   @Field(() => String, { nullable: true })
-  bio?: string;
+  public bio?: string;
 
   @Field(() => Boolean)
-  theme!: boolean;
+  public theme!: boolean;
 
   @Field(() => Boolean)
-  animation!: boolean;
+  public animation!: boolean;
 
   @Field(() => Date)
-  createdAt!: Date;
+  public createdAt!: Date;
 
   @Field(() => Date)
-  updatedAt!: Date;
+  public updatedAt!: Date;
 }
 
 @ObjectType()
 export class UserLogin extends UserData {
   @Field(() => String)
-  password!: string;
+  public password!: string;
 }
 
 @ObjectType()
 export class UserResponse {
   @Field(() => String)
-  status!: string;
+  public status!: string;
 
   @Field(() => Number)
-  code!: number;
+  public code!: number;
 
   @Field(() => UserData, { nullable: true })
-  data?: UserData;
+  public data?: UserData;
 
   @Field(() => String, { nullable: true })
-  message?: string;
+  public message?: string;
 }
 
 @ObjectType()
 export class LoginResponse {
   @Field(() => String)
-  status!: string;
+  public status!: string;
 
   @Field(() => Number)
-  code!: number;
+  public code!: number;
 
   @Field(() => String, { nullable: true })
-  message?: string;
+  public message?: string;
 
   @Field(() => String, { nullable: true })
-  access_token?: string;
+  public access_token?: string;
 }

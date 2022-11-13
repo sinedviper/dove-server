@@ -142,7 +142,9 @@ export class UserService {
     }
   }
 
-  private async findByIdAndUpdateOnline(id: number): Promise<string> {
+  private async findByIdAndUpdateOnline(
+    id: number
+  ): Promise<UserData | string> {
     try {
       const userRepo = AppDataSource.getRepository(UserModel);
 
@@ -157,7 +159,16 @@ export class UserService {
         .where("id = :id", { id })
         .execute();
 
-      return success;
+      const userUpdate = await userRepo
+        .createQueryBuilder("users")
+        .where("users.id = :id", { id })
+        .getOne();
+
+      if (!userUpdate) {
+        return invalid;
+      }
+
+      return userUpdate as unknown as UserData;
     } catch (e) {
       console.log(e);
       return invalid;
@@ -165,7 +176,7 @@ export class UserService {
   }
 
   // Sign JWT Tokens
-  private signTokens(user: UserData) {
+  private signTokens(user: UserLogin) {
     try {
       const userId: string = user.id.toString();
 
@@ -296,7 +307,7 @@ export class UserService {
         };
       }
       // 1. Find user by email
-      const user = await this.findByEmail(input.email);
+      const user: UserLogin = await this.findByEmail(input.email);
       if (!user) {
         return {
           status: invalid,
@@ -468,12 +479,12 @@ export class UserService {
           return { status: invalid, code: 400, message: "Uncorrect" };
         }
         //Update user
-        const mess = await this.findByIdAndUpdateOnline(id);
-        if (mess == invalid) {
+        const data = await this.findByIdAndUpdateOnline(id);
+        if (data == invalid) {
           return { status: invalid, code: 404, message: "Update faile" };
         }
 
-        return { status: success, code: 200, message: "User update" };
+        return { status: success, code: 200, data, message: "User update" };
       }
 
       return { status: invalid, code: 401, message };
