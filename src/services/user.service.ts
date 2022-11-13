@@ -21,132 +21,166 @@ export class UserService {
   private accessTokenExpiresIn = Number(process.env.ACCESS_TOKEN_EXPIRES_IN);
 
   private async findByEmail(email: string): Promise<UserLogin | null> {
-    const userRepo = AppDataSource.getRepository(UserModel);
-    const user = userRepo
-      .createQueryBuilder("users")
-      .where("users.email = :email", { email })
-      .getOne();
-    return user as unknown as UserLogin;
+    try {
+      const userRepo = AppDataSource.getRepository(UserModel);
+      const user = userRepo
+        .createQueryBuilder("users")
+        .where("users.email = :email", { email })
+        .getOne();
+
+      return user as unknown as UserLogin;
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   private async findById(id: number): Promise<UserData | string> {
-    const userRepo = AppDataSource.getRepository(UserModel);
+    try {
+      const userRepo = AppDataSource.getRepository(UserModel);
 
-    const user = await userRepo
-      .createQueryBuilder("users")
-      .where("users.id = :id", { id })
-      .getOne();
+      const user = await userRepo
+        .createQueryBuilder("users")
+        .where("users.id = :id", { id })
+        .getOne();
 
-    if (!user) {
+      if (!user) {
+        return invalid;
+      }
+
+      return user as unknown as UserData;
+    } catch (e) {
+      console.log(e);
       return invalid;
     }
-
-    return user as unknown as UserData;
   }
 
   private async findByIdAndDelete(id: number): Promise<UserData | string> {
-    const userRepo = AppDataSource.getRepository(UserModel);
+    try {
+      const userRepo = AppDataSource.getRepository(UserModel);
 
-    await userRepo.delete({ id });
+      await userRepo.delete({ id });
 
-    return success;
+      return success;
+    } catch (e) {
+      console.log(e);
+      return invalid;
+    }
   }
 
   private async findByIdAndUpdate(
     id: number,
     input: UpdateInput
   ): Promise<string | UserData> {
-    const userRepo = AppDataSource.getRepository(UserModel);
+    try {
+      const userRepo = AppDataSource.getRepository(UserModel);
 
-    if (!userRepo) {
-      return invalid;
-    }
-    const user = await userRepo.findOne({ where: { id } });
-
-    if (!user) {
-      return invalid;
-    }
-
-    let newUser = {};
-    if (input.password && input.passwordNew) {
-      const passwordHash = bcrypt.compareSync(input.password, user.password);
-      if (!passwordHash) {
+      if (!userRepo) {
         return invalid;
       }
-      const salt = bcrypt.genSaltSync(Number(process.env.COST_FACTOR));
-      const passwordHashi = bcrypt.hashSync(input.passwordNew, salt);
-      newUser = { password: passwordHashi };
-    }
+      const user = await userRepo.findOne({ where: { id } });
 
-    newUser = input.name ? { ...newUser, name: input.name } : { ...newUser };
+      if (!user) {
+        return invalid;
+      }
 
-    newUser =
-      input.surname || input.surname == ""
-        ? { ...newUser, surname: input.surname }
+      let newUser = {};
+      if (input.password && input.passwordNew) {
+        const passwordHash = bcrypt.compareSync(input.password, user.password);
+        if (!passwordHash) {
+          return invalid;
+        }
+        const salt = bcrypt.genSaltSync(Number(process.env.COST_FACTOR));
+        const passwordHashi = bcrypt.hashSync(input.passwordNew, salt);
+        newUser = { password: passwordHashi };
+      }
+
+      newUser = input.name ? { ...newUser, name: input.name } : { ...newUser };
+
+      newUser =
+        input.surname || input.surname == ""
+          ? { ...newUser, surname: input.surname }
+          : { ...newUser };
+
+      newUser = input.username
+        ? { ...newUser, username: input.username }
         : { ...newUser };
 
-    newUser = input.username
-      ? { ...newUser, username: input.username }
-      : { ...newUser };
+      newUser = input.email
+        ? { ...newUser, email: input.email }
+        : { ...newUser };
 
-    newUser = input.email ? { ...newUser, email: input.email } : { ...newUser };
+      newUser = input.bio ? { ...newUser, bio: input.bio } : { ...newUser };
 
-    newUser = input.bio ? { ...newUser, bio: input.bio } : { ...newUser };
+      newUser = input.theme
+        ? { ...newUser, theme: input.theme }
+        : { ...newUser };
 
-    newUser = input.theme ? { ...newUser, theme: input.theme } : { ...newUser };
+      newUser = input.animation
+        ? { ...newUser, animation: input.animation }
+        : { ...newUser };
 
-    newUser = input.animation
-      ? { ...newUser, animation: input.animation }
-      : { ...newUser };
+      await userRepo
+        .createQueryBuilder()
+        .update(UserModel)
+        .set({ ...newUser })
+        .where("id = :id", { id })
+        .execute();
 
-    await userRepo
-      .createQueryBuilder()
-      .update(UserModel)
-      .set({ ...newUser })
-      .where("id = :id", { id })
-      .execute();
+      const userUpdate = await userRepo
+        .createQueryBuilder("users")
+        .where("users.id = :id", { id })
+        .getOne();
 
-    const userUpdate = await userRepo
-      .createQueryBuilder("users")
-      .where("users.id = :id", { id })
-      .getOne();
+      if (!userUpdate) {
+        return invalid;
+      }
 
-    if (!userUpdate) {
+      return userUpdate as unknown as UserData;
+    } catch (e) {
+      console.log(e);
       return invalid;
     }
-
-    return userUpdate as unknown as UserData;
   }
 
   private async findByIdAndUpdateOnline(id: number): Promise<string> {
-    const userRepo = AppDataSource.getRepository(UserModel);
+    try {
+      const userRepo = AppDataSource.getRepository(UserModel);
 
-    if (!userRepo) {
+      if (!userRepo) {
+        return invalid;
+      }
+
+      await userRepo
+        .createQueryBuilder()
+        .update(UserModel)
+        .set({ online: new Date() })
+        .where("id = :id", { id })
+        .execute();
+
+      return success;
+    } catch (e) {
+      console.log(e);
       return invalid;
     }
-
-    await userRepo
-      .createQueryBuilder()
-      .update(UserModel)
-      .set({ online: new Date() })
-      .where("id = :id", { id })
-      .execute();
-
-    return success;
   }
 
   // Sign JWT Tokens
   private signTokens(user: UserData) {
-    const userId: string = user.id.toString();
+    try {
+      const userId: string = user.id.toString();
 
-    const access_token = signJwt(
-      { userId },
-      {
-        expiresIn: `${this.accessTokenExpiresIn}m`,
-      }
-    );
+      const access_token = signJwt(
+        { userId },
+        {
+          expiresIn: `${this.accessTokenExpiresIn}m`,
+        }
+      );
 
-    return access_token;
+      return access_token;
+    } catch (e) {
+      console.log(e);
+      return invalid;
+    }
   }
   //----------------------------------------------------Public function-----------------------------------------------------------
   // Register User
@@ -162,30 +196,35 @@ export class UserService {
       if (username.length < 3 || username.length > 40) {
         return {
           status: invalid,
+          code: 400,
           message: "Username must be between 3 and 40 characters",
         };
       }
       if (email.length < 3 || email.length > 40) {
         return {
           status: invalid,
+          code: 400,
           message: "Email must be between 3 and 40 characters",
         };
       }
       if (password.length < 8 || password.length > 40) {
         return {
           status: invalid,
+          code: 400,
           message: "Password must be between 8 and 40 characters",
         };
       }
       if (name.length < 1 || name.length > 30) {
         return {
           status: invalid,
+          code: 400,
           message: "Name must be between 1 and 40 characters",
         };
       }
       if (surname.length > 30) {
         return {
           status: invalid,
+          code: 400,
           message: "Surname must be not more 40 characters",
         };
       }
@@ -197,6 +236,7 @@ export class UserService {
       if (userCheckUsername) {
         return {
           status: invalid,
+          code: 404,
           message,
         };
       }
@@ -205,6 +245,7 @@ export class UserService {
       if (userCheckEmail) {
         return {
           status: invalid,
+          code: 404,
           message,
         };
       }
@@ -227,11 +268,12 @@ export class UserService {
 
       return {
         status: success,
+        code: 201,
         data: user,
         message: "User created!",
       };
-    } catch (error: any) {
-      console.error("Error created: " + error);
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 
@@ -242,12 +284,14 @@ export class UserService {
       if (input.email.length < 3 || input.email.length > 40) {
         return {
           status: invalid,
+          code: 400,
           message: "Email must be between 3 and 40 characters",
         };
       }
       if (input.password.length < 8 || input.password.length > 40) {
         return {
           status: invalid,
+          code: 400,
           message: "Password must be between 8 and 40 characters",
         };
       }
@@ -256,6 +300,7 @@ export class UserService {
       if (!user) {
         return {
           status: invalid,
+          code: 404,
           message,
         };
       }
@@ -265,6 +310,7 @@ export class UserService {
       if (!passwordHash) {
         return {
           status: invalid,
+          code: 400,
           message,
         };
       }
@@ -275,16 +321,18 @@ export class UserService {
       if (!access_token) {
         return {
           status: invalid,
+          code: 401,
           message,
         };
       }
 
       return {
         status: success,
+        code: 200,
         access_token,
       };
-    } catch (error: any) {
-      console.error(error);
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 
@@ -300,16 +348,18 @@ export class UserService {
 
         return {
           status: success,
+          code: 200,
           data: user,
         };
       }
 
       return {
         status: invalid,
-        message: "user not found",
+        code: 401,
+        message,
       };
-    } catch (error: any) {
-      console.error(error);
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 
@@ -325,12 +375,12 @@ export class UserService {
         //Delete user
         this.findByIdAndDelete(id);
 
-        return { status: success, message: "Logout" };
+        return { status: success, code: 200, message: "Logout" };
       }
 
-      return { status: invalid, message };
-    } catch (error) {
-      console.error(error);
+      return { status: invalid, code: 401, message };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 
@@ -344,6 +394,7 @@ export class UserService {
         if (input.username.length < 3 || input.username.length > 30) {
           return {
             status: invalid,
+            code: 400,
             message: "Username must be between 3 and 30 characters",
           };
         }
@@ -351,6 +402,7 @@ export class UserService {
         if (input.email.length < 3 || input.email.length > 40) {
           return {
             status: invalid,
+            code: 400,
             message: "Email must be between 3 and 40 characters",
           };
         }
@@ -358,6 +410,7 @@ export class UserService {
         if (input.password.length < 8 || input.password.length > 40) {
           return {
             status: invalid,
+            code: 400,
             message: "Password must be between 8 and 40 characters",
           };
         }
@@ -365,6 +418,7 @@ export class UserService {
         if (input.passwordNew.length < 8 || input.passwordNew.length > 40) {
           return {
             status: invalid,
+            code: 400,
             message: "Password must be between 8 and 40 characters",
           };
         }
@@ -372,6 +426,7 @@ export class UserService {
         if (input.name.length < 1 || input.name.length > 40) {
           return {
             status: invalid,
+            code: 400,
             message: "Name must be between 1 and 40 characters",
           };
         }
@@ -379,6 +434,7 @@ export class UserService {
         if (input.surname.length > 40) {
           return {
             status: invalid,
+            code: 400,
             message: "Surname must be not more 40 characters",
           };
         }
@@ -386,17 +442,17 @@ export class UserService {
 
       if (message == success) {
         //Update user
-        const mess = await this.findByIdAndUpdate(id, input);
-        if (mess == invalid) {
-          return { status: invalid, message: "Update faile" };
+        const data = await this.findByIdAndUpdate(id, input);
+        if (data == invalid) {
+          return { status: invalid, code: 404, message: "Update faile" };
         }
 
-        return { status: success, data: mess, message: "User update" };
+        return { status: success, code: 200, data, message: "User update" };
       }
 
-      return { status: invalid, message };
-    } catch (error) {
-      console.error(error);
+      return { status: invalid, code: 401, message };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
   //Update User
@@ -409,20 +465,20 @@ export class UserService {
 
       if (message == success) {
         if (input.online !== "ping") {
-          return { status: invalid, message: "Uncorrect" };
+          return { status: invalid, code: 400, message: "Uncorrect" };
         }
         //Update user
         const mess = await this.findByIdAndUpdateOnline(id);
         if (mess == invalid) {
-          return { status: invalid, message: "Update faile" };
+          return { status: invalid, code: 404, message: "Update faile" };
         }
 
-        return { status: success, message: "User update" };
+        return { status: success, code: 200, message: "User update" };
       }
 
-      return { status: invalid, message };
-    } catch (error) {
-      console.error(error);
+      return { status: invalid, code: 401, message };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 }

@@ -29,6 +29,9 @@ export class ChatResponse {
   @Field(() => String)
   public status!: string;
 
+  @Field(() => Number)
+  public code!: number;
+
   @Field(() => [Chats], { nullable: true })
   public data?: Chats[];
 

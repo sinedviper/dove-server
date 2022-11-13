@@ -13,38 +13,43 @@ export class ContactService {
     userId,
     contactId,
   }: ContactInput): Promise<UserData[] | string> {
-    //search table
-    const contactRepo = AppDataSource.getRepository(ContactModel);
-    //find values
-    const findContact = await contactRepo
-      .createQueryBuilder("contact")
-      .where("contact.userId = :userId", { userId })
-      .andWhere("contact.contactId = :contactId", { contactId })
-      .getOne();
+    try {
+      //search table
+      const contactRepo = AppDataSource.getRepository(ContactModel);
+      //find values
+      const findContact = await contactRepo
+        .createQueryBuilder("contact")
+        .where("contact.userId = :userId", { userId })
+        .andWhere("contact.contactId = :contactId", { contactId })
+        .getOne();
 
-    if (findContact) {
+      if (findContact) {
+        return invalid;
+      }
+      //create contact
+      const contact = contactRepo.create({
+        userId,
+        contactId,
+      });
+      await contactRepo.save(contact);
+
+      const findContacts = await contactRepo
+        .createQueryBuilder("contact")
+        .where("contact.userId = :userId", { userId })
+        .leftJoinAndSelect("contact.contactId", "contactId")
+        .getMany();
+
+      if (!findContacts) {
+        return invalid;
+      }
+      //give contacts
+      return findContacts.map((obj) => {
+        return obj.contactId as unknown as UserData;
+      }) as UserData[];
+    } catch (e) {
+      console.log(e);
       return invalid;
     }
-    //create contact
-    const contact = contactRepo.create({
-      userId,
-      contactId,
-    });
-    await contactRepo.save(contact);
-
-    const findContacts = await contactRepo
-      .createQueryBuilder("contact")
-      .where("contact.userId = :userId", { userId })
-      .leftJoinAndSelect("contact.contactId", "contactId")
-      .getMany();
-
-    if (!findContacts) {
-      return invalid;
-    }
-    //give contacts
-    return findContacts.map((obj) => {
-      return obj.contactId as unknown as UserData;
-    }) as UserData[];
   }
 
   //Delete contact to user
@@ -52,59 +57,69 @@ export class ContactService {
     userId,
     contactId,
   }: ContactInput): Promise<UserData[] | string> {
-    //search table
-    const contactRepo = AppDataSource.getRepository(ContactModel);
-    //find values
-    const findContact = await contactRepo
-      .createQueryBuilder("contact")
-      .where("contact.userId = :userId", { userId })
-      .andWhere("contact.contactId = :contactId", { contactId })
-      .getOne();
+    try {
+      //search table
+      const contactRepo = AppDataSource.getRepository(ContactModel);
+      //find values
+      const findContact = await contactRepo
+        .createQueryBuilder("contact")
+        .where("contact.userId = :userId", { userId })
+        .andWhere("contact.contactId = :contactId", { contactId })
+        .getOne();
 
-    if (!findContact) {
+      if (!findContact) {
+        return invalid;
+      }
+      //delete contact
+      await contactRepo
+        .createQueryBuilder("contact")
+        .delete()
+        .where("contact.userId = :userId", { userId })
+        .andWhere("contact.contactId = :contactId", { contactId })
+        .execute();
+
+      const findContacts = await contactRepo
+        .createQueryBuilder("contact")
+        .where("contact.userId = :userId", { userId })
+        .leftJoinAndSelect("contact.contactId", "contactId")
+        .getMany();
+
+      if (!findContacts) {
+        return invalid;
+      }
+      //give contacts
+      return findContacts.map((obj) => {
+        return obj.contactId as unknown as UserData;
+      }) as UserData[];
+    } catch (e) {
+      console.log(e);
       return invalid;
     }
-    //delete contact
-    await contactRepo
-      .createQueryBuilder("contact")
-      .delete()
-      .where("contact.userId = :userId", { userId })
-      .andWhere("contact.contactId = :contactId", { contactId })
-      .execute();
-
-    const findContacts = await contactRepo
-      .createQueryBuilder("contact")
-      .where("contact.userId = :userId", { userId })
-      .leftJoinAndSelect("contact.contactId", "contactId")
-      .getMany();
-
-    if (!findContacts) {
-      return invalid;
-    }
-    //give contacts
-    return findContacts.map((obj) => {
-      return obj.contactId as unknown as UserData;
-    }) as UserData[];
   }
 
   //find contact User
   private async findContactUser(userId: number): Promise<UserData[] | string> {
-    //search table
-    const contactRepo = AppDataSource.getRepository(ContactModel);
-    //find values
-    const findContact = await contactRepo
-      .createQueryBuilder("contact")
-      .where("contact.userId = :userId", { userId })
-      .leftJoinAndSelect("contact.contactId", "contactId")
-      .getMany();
+    try {
+      //search table
+      const contactRepo = AppDataSource.getRepository(ContactModel);
+      //find values
+      const findContact = await contactRepo
+        .createQueryBuilder("contact")
+        .where("contact.userId = :userId", { userId })
+        .leftJoinAndSelect("contact.contactId", "contactId")
+        .getMany();
 
-    if (!findContact) {
+      if (!findContact) {
+        return invalid;
+      }
+      //give contacts
+      return findContact.map((obj) => {
+        return obj.contactId as unknown as UserData;
+      }) as UserData[];
+    } catch (e) {
+      console.log(e);
       return invalid;
     }
-    //give contacts
-    return findContact.map((obj) => {
-      return obj.contactId as unknown as UserData;
-    }) as UserData[];
   }
   //-----------------------------------------------------------Public function-------------------------------------------------
   //Add contact
@@ -117,18 +132,23 @@ export class ContactService {
 
       if (message == success && id == input.userId) {
         //Add function contact
-        const mess = await this.findByIdAndAdd(input);
+        const data = await this.findByIdAndAdd(input);
 
-        if (mess == invalid) {
-          return { status: invalid, message: "Can't add" };
+        if (data == invalid) {
+          return { status: invalid, code: 404, message: "Can't add" };
         }
 
-        return { status: success, data: mess, message: "Contact add" };
+        return {
+          status: success,
+          code: 201,
+          data,
+          message: "Contact add",
+        };
       }
 
-      return { status: invalid, message };
-    } catch (error) {
-      console.error(error);
+      return { status: invalid, code: 401, message };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 
@@ -142,18 +162,23 @@ export class ContactService {
 
       if (message == success && id == input.userId) {
         //Delete fucntion contact
-        const mess = await this.findByIdAndDelete(input);
+        const data = await this.findByIdAndDelete(input);
 
-        if (mess == invalid) {
-          return { status: invalid, message: "Can't delete" };
+        if (data == invalid) {
+          return { status: invalid, code: 404, message: "Can't delete" };
         }
 
-        return { status: success, data: mess, message: "Contact delete" };
+        return {
+          status: success,
+          code: 200,
+          data,
+          message: "Contact delete",
+        };
       }
 
-      return { status: invalid, message };
-    } catch (error) {
-      console.error(error);
+      return { status: invalid, code: 401, message };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 
@@ -166,15 +191,15 @@ export class ContactService {
         //Find function contact
         const data = await this.findContactUser(id);
         if (data == invalid) {
-          return { status: invalid, message: "Can't find" };
+          return { status: invalid, code: 404, message: "Can't find" };
         }
 
-        return { status: success, data };
+        return { status: success, code: 200, data };
       }
 
-      return { status: invalid, message };
-    } catch (error) {
-      console.error(error);
+      return { status: invalid, code: 401, message };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 }

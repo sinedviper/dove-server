@@ -1,82 +1,73 @@
 import { Field, ID, InputType, ObjectType } from "type-graphql";
-import {
-  BaseEntity,
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from "typeorm";
-import { ChatModel } from "../Chat";
 
-import { UserData, UserModel } from "../User";
-import { MessageModel } from "./message.model";
+import { ChatModel } from "../Chat";
+import { UserData } from "../User";
 
 @InputType()
 export class MessageInput {
   @Field(() => ID, { nullable: true })
-  id?: number;
+  public id?: number;
 
   @Field(() => Number)
-  senderMessage!: number;
+  public senderMessage!: number;
 
   @Field(() => String, { nullable: true })
-  text?: string;
+  public text?: string;
 
   @Field(() => Number, { nullable: true })
-  reply?: number;
+  public reply?: number;
 
   @Field(() => Number)
-  chatId!: number;
+  public chatId!: number;
 }
 
 @ObjectType()
 export class MessageData {
   @Field(() => ID)
-  id!: number;
+  public id!: number;
 
   @Field(() => UserData)
-  senderMessage!: number;
+  public senderMessage!: number;
 
   @Field(() => String)
-  text!: string;
+  public text!: string;
 
   @Field(() => ChatModel)
-  chatId!: number;
+  public chatId!: number;
 
   @Field(() => MessageReply, { nullable: true })
-  reply?: number;
+  public reply?: number;
 
   @Field(() => Date)
-  createdAt!: Date;
+  public createdAt!: Date;
 }
 
 @ObjectType()
 export class MessageReply {
   @Field(() => ID)
-  id!: number;
+  public id!: number;
 
   @Field(() => UserData)
-  senderMessage!: number;
+  public senderMessage!: number;
 
   @Field(() => String)
-  text!: string;
+  public text!: string;
 
   @Field(() => Date)
-  createdAt!: Date;
+  public createdAt!: Date;
 }
 
 @ObjectType()
 export class MessageResponse {
   @Field(() => String)
-  status!: string;
+  public status!: string;
+
+  @Field(() => Number)
+  public code!: number;
 
   @Field(() => [MessageData], { nullable: true })
-  data?: MessageData[];
+  public data?: MessageData[];
 
   @Field(() => String, { nullable: true })
-  message?: string;
+  public message?: string;
 }

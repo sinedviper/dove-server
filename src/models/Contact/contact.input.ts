@@ -3,41 +3,44 @@ import { Field, ID, InputType, ObjectType } from "type-graphql";
 @InputType()
 export class ContactInput {
   @Field(() => Number)
-  userId!: number;
+  public userId!: number;
 
   @Field(() => Number)
-  contactId!: number;
+  public contactId!: number;
 }
 
 @ObjectType()
 class ContactData {
   @Field(() => ID)
-  id!: number;
+  public id!: number;
 
   @Field(() => String)
-  username!: string;
+  public username!: string;
 
   @Field(() => String)
-  email!: string;
+  public email!: string;
 
   @Field(() => String)
-  name!: string;
+  public name!: string;
 
   @Field(() => String)
-  surname!: string;
+  public surname!: string;
 
   @Field(() => Date)
-  createdAt!: Date;
+  public createdAt!: Date;
 }
 
 @ObjectType()
 export class ContactResponse {
   @Field(() => String)
-  status!: string;
+  public status!: string;
+
+  @Field(() => Number)
+  public code!: number;
 
   @Field(() => [ContactData], { nullable: true })
-  data?: ContactData[];
+  public data?: ContactData[];
 
   @Field(() => String, { nullable: true })
-  message?: string;
+  public message?: string;
 }

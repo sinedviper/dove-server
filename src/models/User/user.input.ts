@@ -110,6 +110,9 @@ export class UserResponse {
   @Field(() => String)
   status!: string;
 
+  @Field(() => Number)
+  code!: number;
+
   @Field(() => UserData, { nullable: true })
   data?: UserData;
 
@@ -121,6 +124,9 @@ export class UserResponse {
 export class LoginResponse {
   @Field(() => String)
   status!: string;
+
+  @Field(() => Number)
+  code!: number;
 
   @Field(() => String, { nullable: true })
   message?: string;

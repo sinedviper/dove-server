@@ -14,35 +14,41 @@ export class MessageService {
     text,
     chatId,
   }: MessageInput): Promise<MessageData[] | string> {
-    if (text.length > 1000 || text.length < 1) {
+    try {
+      if (text.length > 1000 || text.length < 1) {
+        return invalid;
+      }
+      //search table
+      const messageRepo = AppDataSource.getRepository(MessageModel);
+      //create values
+      const message = messageRepo.create({
+        senderMessage,
+        text,
+        chatId,
+      });
+      //save
+      await messageRepo.save(message);
+
+      const findMessage = await messageRepo
+        .createQueryBuilder("message")
+        .where("message.chatId = :chatId", { chatId })
+        .leftJoinAndSelect("message.senderMessage", "senderMessage")
+        .leftJoinAndSelect("message.chatId", "chatId")
+        .leftJoinAndSelect("message.reply", "reply")
+        .leftJoinAndSelect("reply.senderMessage", "senderMessage.id")
+        .getMany();
+
+      if (!findMessage) {
+        return invalid;
+      }
+
+      return findMessage?.sort(
+        (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
+      ) as undefined as MessageData[];
+    } catch (e) {
+      console.log(e);
       return invalid;
     }
-    //search table
-    const messageRepo = AppDataSource.getRepository(MessageModel);
-    //create values
-    const message = messageRepo.create({
-      senderMessage,
-      text,
-      chatId,
-    });
-    //save
-    await messageRepo.save(message);
-
-    const findMessage = await messageRepo
-      .createQueryBuilder("message")
-      .where("message.chatId = :chatId", { chatId })
-      .leftJoinAndSelect("message.senderMessage", "senderMessage")
-      .leftJoinAndSelect("message.chatId", "chatId")
-      .leftJoinAndSelect("message.reply", "reply")
-      .getMany();
-
-    if (!findMessage) {
-      return invalid;
-    }
-
-    return findMessage?.sort(
-      (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
-    ) as undefined as MessageData[];
   }
 
   //Delete chat to user
@@ -50,40 +56,46 @@ export class MessageService {
     id,
     chatId,
   }: MessageInput): Promise<MessageData[] | string> {
-    //search table
-    const messageRepo = AppDataSource.getRepository(MessageModel);
-    //find values
-    let message = await messageRepo
-      .createQueryBuilder("message")
-      .where("message.id = :id", { id })
-      .getOne();
+    try {
+      //search table
+      const messageRepo = AppDataSource.getRepository(MessageModel);
+      //find values
+      let message = await messageRepo
+        .createQueryBuilder("message")
+        .where("message.id = :id", { id })
+        .getOne();
 
-    if (!message) {
+      if (!message) {
+        return invalid;
+      }
+      //delete column
+      await messageRepo
+        .createQueryBuilder("message")
+        .delete()
+        .where("message.id = :id", { id })
+        .execute();
+
+      //find values
+      const findMessage = await messageRepo
+        .createQueryBuilder("message")
+        .where("message.chatId = :chatId", { chatId })
+        .leftJoinAndSelect("message.senderMessage", "senderMessage")
+        .leftJoinAndSelect("message.chatId", "chatId")
+        .leftJoinAndSelect("message.reply", "reply")
+        .leftJoinAndSelect("reply.senderMessage", "senderMessage.id")
+        .getMany();
+
+      if (!findMessage) {
+        return invalid;
+      }
+
+      return findMessage?.sort(
+        (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
+      ) as undefined as MessageData[];
+    } catch (e) {
+      console.log(e);
       return invalid;
     }
-    //delete column
-    await messageRepo
-      .createQueryBuilder("message")
-      .delete()
-      .where("message.id = :id", { id })
-      .execute();
-
-    //find values
-    const findMessage = await messageRepo
-      .createQueryBuilder("message")
-      .where("message.chatId = :chatId", { chatId })
-      .leftJoinAndSelect("message.senderMessage", "senderMessage")
-      .leftJoinAndSelect("message.chatId", "chatId")
-      .leftJoinAndSelect("message.reply", "reply")
-      .getMany();
-
-    if (!findMessage) {
-      return invalid;
-    }
-
-    return findMessage?.sort(
-      (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
-    ) as undefined as MessageData[];
   }
 
   private async findByIdAndUpdate({
@@ -92,53 +104,59 @@ export class MessageService {
     chatId,
     reply,
   }: MessageInput): Promise<MessageData[] | string> {
-    //search table
-    const messageRepo = AppDataSource.getRepository(MessageModel);
-    //find values
-    let message = await messageRepo
-      .createQueryBuilder("message")
-      .where("message.id = :id", { id })
-      .getOne();
+    try {
+      //search table
+      const messageRepo = AppDataSource.getRepository(MessageModel);
+      //find values
+      let message = await messageRepo
+        .createQueryBuilder("message")
+        .where("message.id = :id", { id })
+        .getOne();
 
-    if (!message) {
-      return invalid;
-    }
-
-    let update;
-
-    if (text) {
-      if (text.length > 1000 || text.length < 1) {
+      if (!message) {
         return invalid;
       }
-      update = text ? { ...update, text } : { ...update };
-    }
 
-    update = reply ? { ...update, reply } : { ...update };
+      let update;
 
-    //update column
-    await messageRepo
-      .createQueryBuilder()
-      .update(MessageModel)
-      .set({ ...update })
-      .where("message.id = :id", { id })
-      .execute();
+      if (text) {
+        if (text.length > 1000 || text.length < 1) {
+          return invalid;
+        }
+        update = text ? { ...update, text } : { ...update };
+      }
 
-    //find values
-    const findMessage = await messageRepo
-      .createQueryBuilder("message")
-      .where("message.chatId = :chatId", { chatId })
-      .leftJoinAndSelect("message.senderMessage", "senderMessage")
-      .leftJoinAndSelect("message.chatId", "chatId")
-      .leftJoinAndSelect("message.reply", "reply")
-      .getMany();
+      update = reply ? { ...update, reply } : { ...update };
 
-    if (!findMessage) {
+      //update column
+      await messageRepo
+        .createQueryBuilder()
+        .update(MessageModel)
+        .set({ ...update })
+        .where("message.id = :id", { id })
+        .execute();
+
+      //find values
+      const findMessage = await messageRepo
+        .createQueryBuilder("message")
+        .where("message.chatId = :chatId", { chatId })
+        .leftJoinAndSelect("message.senderMessage", "senderMessage")
+        .leftJoinAndSelect("message.chatId", "chatId")
+        .leftJoinAndSelect("message.reply", "reply")
+        .leftJoinAndSelect("reply.senderMessage", "senderMessage.id")
+        .getMany();
+
+      if (!findMessage) {
+        return invalid;
+      }
+
+      return findMessage?.sort(
+        (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
+      ) as undefined as MessageData[];
+    } catch (e) {
+      console.log(e);
       return invalid;
     }
-
-    return findMessage?.sort(
-      (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
-    ) as undefined as MessageData[];
   }
 
   //find message
@@ -155,7 +173,7 @@ export class MessageService {
         .leftJoinAndSelect("message.senderMessage", "senderMessage")
         .leftJoinAndSelect("message.chatId", "chatId")
         .leftJoinAndSelect("message.reply", "reply")
-        .addSelect("message.senderMessage", "senderMessage")
+        .leftJoinAndSelect("reply.senderMessage", "senderMessage.id")
         .getMany();
 
       if (!findMessage) {
@@ -166,7 +184,6 @@ export class MessageService {
         (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
       ) as undefined as MessageData[];
     } catch (e) {
-      console.log("!!");
       console.log(e);
     }
   }
@@ -183,15 +200,15 @@ export class MessageService {
         //Add function message
         const data = await this.findByIdAndAdd(input);
         if (data == invalid) {
-          return { status: invalid, message: "Can't add message" };
+          return { status: invalid, code: 404, message: "Can't add message" };
         }
 
-        return { status: success, data, message: "Message add" };
+        return { status: success, code: 201, data, message: "Message add" };
       }
 
-      return { status: invalid, message: "Invalid user" };
-    } catch (error) {
-      console.error(error);
+      return { status: invalid, code: 401, message: "Invalid user" };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 
@@ -208,15 +225,15 @@ export class MessageService {
         const data = await this.findByIdAndDelete(input);
 
         if (data == invalid) {
-          return { status: invalid, message: "Message not delete" };
+          return { status: invalid, code: 404, message: "Message not delete" };
         }
 
-        return { status: success, data, message: "Message delete" };
+        return { status: success, code: 200, data, message: "Message delete" };
       }
 
-      return { status: invalid, message: "Invalid user" };
-    } catch (error) {
-      console.error(error);
+      return { status: invalid, code: 401, message };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 
@@ -231,12 +248,17 @@ export class MessageService {
       if (message == success && id == input.senderMessage) {
         //Add function message
         const data = await this.findMessage(input);
-        return { status: success, data };
+
+        if (data == invalid) {
+          return { status: invalid, code: 404, message: "Message not delete" };
+        }
+
+        return { status: success, code: 200, data };
       }
 
-      return { status: invalid, message: "Invalid user" };
-    } catch (error) {
-      console.error(error);
+      return { status: invalid, code: 401, message };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
   //Update message
@@ -251,15 +273,20 @@ export class MessageService {
         const message = await this.findByIdAndUpdate(input);
 
         if (message == invalid) {
-          return { status: invalid, message: "Message not update" };
+          return { status: invalid, code: 404, message: "Message not update" };
         }
 
-        return { status: success, data: message, message: "Message update" };
+        return {
+          status: success,
+          code: 200,
+          data: message,
+          message: "Message update",
+        };
       }
 
-      return { status: invalid, message: "Invalid user" };
-    } catch (error) {
-      console.error(error);
+      return { status: invalid, code: 401, message };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
     }
   }
 }

@@ -8,7 +8,6 @@ import {
   JoinColumn,
   ManyToOne,
   Column,
-  OneToMany,
   OneToOne,
 } from "typeorm";
 
@@ -49,9 +48,4 @@ export class MessageModel extends BaseEntity {
   @Field()
   @UpdateDateColumn()
   public updatedAt!: Date;
-
-  // @OneToMany(() => MessageModel, (reply: MessageModel) => reply.reply, {
-  //   nullable: true,
-  // })
-  // replyId: MessageModel[];
 }
