@@ -4,6 +4,9 @@ import { ApolloServer } from "@apollo/server";
 import { buildTypeDefsAndResolvers } from "type-graphql/dist/utils/buildTypeDefsAndResolvers";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { expressMiddleware } from "@apollo/server/express4";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { WebSocketServer } from "ws";
+import { useServer } from "graphql-ws/lib/use/ws";
 import http from "http";
 import express from "express";
 import cors from "cors";
@@ -28,10 +31,29 @@ dotenv.config();
   const app = express();
   const httpServer = http.createServer(app);
 
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: "/graphql",
+  });
+
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+  const serverCleanup = useServer({ schema }, wsServer);
+
   const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    schema,
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              await serverCleanup.dispose();
+            },
+          };
+        },
+      },
+    ],
   });
 
   await server.start();
@@ -44,8 +66,8 @@ dotenv.config();
     })
   );
 
-  await new Promise<void>((resolve) =>
-    httpServer.listen({ port: Number(process.env.PORT) }, resolve)
+  await new Promise<void>((res) =>
+    httpServer.listen({ port: Number(process.env.PORT) }, res)
   )
     .then(() => {
       console.log(
