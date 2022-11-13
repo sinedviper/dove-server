@@ -280,7 +280,6 @@ export class UserService {
       return {
         status: success,
         code: 201,
-        data: user,
         message: "User created!",
       };
     } catch (e) {
