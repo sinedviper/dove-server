@@ -10,6 +10,7 @@ import {
   UserData,
   UserLogin,
   UpdateInputOnline,
+  UserSearchInput,
 } from "../models";
 import { AppDataSource, signJwt } from "../utils";
 import { invalid, success } from "../constants";
@@ -23,12 +24,27 @@ export class UserService {
   private async findByEmail(email: string): Promise<UserLogin | null> {
     try {
       const userRepo = AppDataSource.getRepository(UserModel);
-      const user = userRepo
+      const user = await userRepo
         .createQueryBuilder("users")
         .where("users.email = :email", { email })
         .getOne();
 
       return user as unknown as UserLogin;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  private async findBySearchUser(username: string): Promise<UserData[] | null> {
+    try {
+      const userRepo = AppDataSource.getRepository(UserModel);
+      const user = await userRepo
+        .createQueryBuilder("users")
+        .having("users.username = :username", { username })
+        .limit(10)
+        .getMany();
+
+      return user as unknown as UserData[];
     } catch (e) {
       console.log(e);
     }
@@ -73,7 +89,6 @@ export class UserService {
   ): Promise<string | UserData> {
     try {
       const userRepo = AppDataSource.getRepository(UserModel);
-
       if (!userRepo) {
         return invalid;
       }
@@ -111,13 +126,15 @@ export class UserService {
 
       newUser = input.bio ? { ...newUser, bio: input.bio } : { ...newUser };
 
-      newUser = input.theme
-        ? { ...newUser, theme: input.theme }
-        : { ...newUser };
+      newUser =
+        input.theme === true || input.theme === false
+          ? { ...newUser, theme: input.theme }
+          : { ...newUser };
 
-      newUser = input.animation
-        ? { ...newUser, animation: input.animation }
-        : { ...newUser };
+      newUser =
+        input.animation === true || input.animation == false
+          ? { ...newUser, animation: input.animation }
+          : { ...newUser };
 
       await userRepo
         .createQueryBuilder()
@@ -354,12 +371,11 @@ export class UserService {
 
       //and if have we return it
       if (message == success) {
-        const user = await this.findById(id);
-
+        const data = await this.findById(id);
         return {
           status: success,
           code: 200,
-          data: user,
+          data,
         };
       }
 
@@ -487,6 +503,36 @@ export class UserService {
       }
 
       return { status: invalid, code: 401, message };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
+    }
+  }
+
+  // Get search user
+  public async getSearchUser(
+    input: UserSearchInput,
+    { req, res, autorization }: IContext
+  ) {
+    try {
+      //Check have user
+      const { message, id } = await autorization(req, res);
+
+      //and if have we return it
+      if (message == success && id === input.userId) {
+        const data = await this.findBySearchUser(input.username);
+
+        return {
+          status: success,
+          code: 200,
+          data,
+        };
+      }
+
+      return {
+        status: invalid,
+        code: 401,
+        message,
+      };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }

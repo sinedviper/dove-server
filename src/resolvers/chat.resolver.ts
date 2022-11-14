@@ -27,29 +27,29 @@ export class ResolverChat {
     return payload;
   }
 
-  @Query(() => ChatResponse)
+  @Query(() => Boolean)
   async getChats(@Ctx() ctx: IContext, @PubSub() pubsub: PubSubEngine) {
-    pubsub.publish("Chat", this.chatService.findChats(ctx));
-    return this.chatService.findChats(ctx);
+    pubsub.publish("Chat", await this.chatService.findChats(ctx));
+    return true;
   }
 
-  @Mutation(() => ChatResponse)
+  @Mutation(() => Boolean)
   async addChat(
     @Arg("chat") chat: ChatInput,
     @Ctx() ctx: IContext,
     @PubSub() pubsub: PubSubEngine
   ) {
-    pubsub.publish("Chat", this.chatService.addChat(chat, ctx));
-    return this.chatService.addChat(chat, ctx);
+    pubsub.publish("Chat", await this.chatService.addChat(chat, ctx));
+    return true;
   }
 
-  @Mutation(() => ChatResponse)
+  @Mutation(() => Boolean)
   async deleteChat(
     @Arg("idChat") id: number,
     @Ctx() ctx: IContext,
     @PubSub() pubsub: PubSubEngine
   ) {
-    pubsub.publish("Chat", this.chatService.deleteChat(id, ctx));
-    return this.chatService.deleteChat(id, ctx);
+    pubsub.publish("Chat", await this.chatService.deleteChat(id, ctx));
+    return true;
   }
 }

@@ -27,7 +27,16 @@ class ContactData {
   public surname!: string;
 
   @Field(() => Date)
+  public online!: Date;
+
+  @Field(() => String, { nullable: true })
+  public bio?: string;
+
+  @Field(() => Date)
   public createdAt!: Date;
+
+  @Field(() => Date)
+  public updatedAt!: Date;
 }
 
 @ObjectType()

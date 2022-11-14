@@ -27,29 +27,35 @@ export class ResolverContact {
     return payload;
   }
 
-  @Query(() => ContactResponse)
+  @Query(() => Boolean)
   async getContacts(@Ctx() ctx: IContext, @PubSub() pubsub: PubSubEngine) {
-    pubsub.publish("Contact", this.contactService.findContacts(ctx));
-    return this.contactService.findContacts(ctx);
+    pubsub.publish("Contact", await this.contactService.findContacts(ctx));
+    return true;
   }
 
-  @Mutation(() => ContactResponse)
+  @Mutation(() => Boolean)
   async addContact(
     @Arg("contact") contact: ContactInput,
     @Ctx() ctx: IContext,
     @PubSub() pubsub: PubSubEngine
   ) {
-    pubsub.publish("Contact", this.contactService.addContact(contact, ctx));
-    return this.contactService.addContact(contact, ctx);
+    pubsub.publish(
+      "Contact",
+      await this.contactService.addContact(contact, ctx)
+    );
+    return true;
   }
 
-  @Mutation(() => ContactResponse)
+  @Mutation(() => Boolean)
   async deleteContact(
     @Arg("contact") contact: ContactInput,
     @Ctx() ctx: IContext,
     @PubSub() pubsub: PubSubEngine
   ) {
-    pubsub.publish("Contact", this.contactService.deleteContact(contact, ctx));
-    return this.contactService.deleteContact(contact, ctx);
+    pubsub.publish(
+      "Contact",
+      await this.contactService.deleteContact(contact, ctx)
+    );
+    return true;
   }
 }

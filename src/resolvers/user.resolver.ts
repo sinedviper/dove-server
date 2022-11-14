@@ -1,4 +1,3 @@
-import { UpdateInputOnline } from "./../models/User/user.input";
 import {
   Arg,
   Ctx,
@@ -18,6 +17,8 @@ import {
   UpdateInput,
   UserModel,
   UserResponse,
+  UpdateInputOnline,
+  UserSearchInput,
 } from "../models";
 import { UserService } from "../services";
 import { IContext } from "../interfaces";
@@ -35,10 +36,10 @@ export class ResolverUser {
     return payload;
   }
 
-  @Query(() => UserResponse)
+  @Query(() => Boolean)
   async getMe(@Ctx() ctx: IContext, @PubSub() pubsub: PubSubEngine) {
-    pubsub.publish("User", this.userService.getMe(ctx));
-    return this.userService.getMe(ctx);
+    pubsub.publish("User", await this.userService.getMe(ctx));
+    return true;
   }
 
   @Mutation(() => UserResponse)
@@ -48,31 +49,39 @@ export class ResolverUser {
 
   @Mutation(() => LoginResponse)
   async loginUser(@Arg("input") loginInput: LoginInput) {
-    return this.userService.loginUser(loginInput);
+    return await this.userService.loginUser(loginInput);
   }
 
   @Mutation(() => UserResponse)
   async deleteUser(@Ctx() ctx: IContext) {
-    return this.userService.deleteUser(ctx);
+    return await this.userService.deleteUser(ctx);
   }
 
-  @Mutation(() => UserResponse)
+  @Mutation(() => Boolean)
   async updateUser(
     @Arg("input") input: UpdateInput,
     @Ctx() ctx: IContext,
     @PubSub() pubsub: PubSubEngine
   ) {
-    pubsub.publish("User", this.userService.updateUser(input, ctx));
-    return this.userService.updateUser(input, ctx);
+    pubsub.publish("User", await this.userService.updateUser(input, ctx));
+    return true;
   }
 
-  @Mutation(() => UserResponse)
+  @Mutation(() => Boolean)
   async updateUserOnline(
     @Arg("input") input: UpdateInputOnline,
     @Ctx() ctx: IContext,
     @PubSub() pubsub: PubSubEngine
   ) {
-    pubsub.publish("User", this.userService.updateUserOnline(input, ctx));
-    return this.userService.updateUserOnline(input, ctx);
+    pubsub.publish("User", await this.userService.updateUserOnline(input, ctx));
+    return true;
+  }
+
+  @Mutation(() => UserResponse)
+  async searchUsers(
+    @Arg("input") input: UserSearchInput,
+    @Ctx() ctx: IContext
+  ) {
+    return await this.userService.getSearchUser(input, ctx);
   }
 }

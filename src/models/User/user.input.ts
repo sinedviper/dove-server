@@ -50,7 +50,7 @@ export class UpdateInput {
 
 @InputType()
 export class UpdateInputOnline {
-  @Field(() => Date)
+  @Field(() => String)
   public online!: String;
 }
 
@@ -61,6 +61,15 @@ export class LoginInput {
 
   @Field(() => String)
   public password!: string;
+}
+
+@InputType()
+export class UserSearchInput {
+  @Field(() => Number)
+  public userId!: number;
+
+  @Field(() => String)
+  public username!: string;
 }
 
 @ObjectType()

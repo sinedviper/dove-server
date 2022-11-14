@@ -27,43 +27,55 @@ export class ResolverMessage {
     return payload;
   }
 
-  @Query(() => MessageResponse)
+  @Query(() => Boolean)
   async getMessages(
     @Arg("message") message: MessageInput,
     @Ctx() ctx: IContext,
     @PubSub() pubsub: PubSubEngine
   ) {
-    pubsub.publish("Message", this.messageService.findMessages(message, ctx));
-    return this.messageService.findMessages(message, ctx);
+    pubsub.publish(
+      "Message",
+      await this.messageService.findMessages(message, ctx)
+    );
+    return true;
   }
 
-  @Mutation(() => MessageResponse)
+  @Mutation(() => Boolean)
   async updateMessage(
     @Arg("message") message: MessageInput,
     @Ctx() ctx: IContext,
     @PubSub() pubsub: PubSubEngine
   ) {
-    pubsub.publish("Message", this.messageService.updateMessage(message, ctx));
-    return this.messageService.updateMessage(message, ctx);
+    pubsub.publish(
+      "Message",
+      await this.messageService.updateMessage(message, ctx)
+    );
+    return true;
   }
 
-  @Mutation(() => MessageResponse)
+  @Mutation(() => Boolean)
   async addMessage(
     @Arg("message") message: MessageInput,
     @Ctx() ctx: IContext,
     @PubSub() pubsub: PubSubEngine
   ) {
-    pubsub.publish("Message", this.messageService.addMessage(message, ctx));
-    return this.messageService.addMessage(message, ctx);
+    pubsub.publish(
+      "Message",
+      await this.messageService.addMessage(message, ctx)
+    );
+    return true;
   }
 
-  @Mutation(() => MessageResponse)
+  @Mutation(() => Boolean)
   async deleteMessage(
     @Arg("message") message: MessageInput,
     @Ctx() ctx: IContext,
     @PubSub() pubsub: PubSubEngine
   ) {
-    pubsub.publish("Message", this.messageService.deleteMessage(message, ctx));
-    return this.messageService.deleteMessage(message, ctx);
+    pubsub.publish(
+      "Message",
+      await this.messageService.deleteMessage(message, ctx)
+    );
+    return true;
   }
 }
