@@ -14,6 +14,7 @@ import {
 } from "../models";
 import { AppDataSource, signJwt } from "../utils";
 import { invalid, success } from "../constants";
+import { NotBrackets } from "typeorm";
 
 dotenv.config();
 
@@ -40,11 +41,21 @@ export class UserService {
       const userRepo = AppDataSource.getRepository(UserModel);
       const user = await userRepo
         .createQueryBuilder("users")
-        .having("users.username = :username", { username })
+        .where("users.username = :username", { username })
+        .getOne();
+
+      const users = await userRepo
+        .createQueryBuilder("users")
+        .where(
+          new NotBrackets((qb) => {
+            qb.where("users.username = :username", { username: user.username });
+          })
+        )
+        .andHaving("users.username = :username", { username })
         .limit(10)
         .getMany();
 
-      return user as unknown as UserData[];
+      return users as unknown as UserData[];
     } catch (e) {
       console.log(e);
     }
