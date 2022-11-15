@@ -38,7 +38,18 @@ dotenv.config();
 
   const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-  const serverCleanup = useServer({ schema }, wsServer);
+  const serverCleanup = useServer(
+    {
+      schema,
+      onConnect() {
+        console.log("WebSocket connect!");
+      },
+      onDisconnect() {
+        console.log("WebSocket disconnect!");
+      },
+    },
+    wsServer
+  );
 
   const server = new ApolloServer({
     schema,

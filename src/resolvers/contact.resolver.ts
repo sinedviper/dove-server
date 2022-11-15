@@ -27,10 +27,9 @@ export class ResolverContact {
     return payload;
   }
 
-  @Query(() => Boolean)
-  async getContacts(@Ctx() ctx: IContext, @PubSub() pubsub: PubSubEngine) {
-    pubsub.publish("Contact", await this.contactService.findContacts(ctx));
-    return true;
+  @Query(() => ContactResponse)
+  async getContacts(@Ctx() ctx: IContext) {
+    return this.contactService.findContacts(ctx);
   }
 
   @Mutation(() => Boolean)

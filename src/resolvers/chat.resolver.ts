@@ -27,10 +27,9 @@ export class ResolverChat {
     return payload;
   }
 
-  @Query(() => Boolean)
-  async getChats(@Ctx() ctx: IContext, @PubSub() pubsub: PubSubEngine) {
-    pubsub.publish("Chat", await this.chatService.findChats(ctx));
-    return true;
+  @Query(() => ChatResponse)
+  async getChats(@Ctx() ctx: IContext) {
+    return this.chatService.findChats(ctx);
   }
 
   @Mutation(() => Boolean)

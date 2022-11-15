@@ -276,7 +276,6 @@ export class ChatService {
   public async findChats({ req, res, autorization }: IContext) {
     try {
       const { message, id } = await autorization(req, res);
-
       if (message == success) {
         //Add chat
         const data = await this.findChatUser(id);

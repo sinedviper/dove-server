@@ -27,17 +27,12 @@ export class ResolverMessage {
     return payload;
   }
 
-  @Query(() => Boolean)
+  @Query(() => MessageResponse)
   async getMessages(
     @Arg("message") message: MessageInput,
-    @Ctx() ctx: IContext,
-    @PubSub() pubsub: PubSubEngine
+    @Ctx() ctx: IContext
   ) {
-    pubsub.publish(
-      "Message",
-      await this.messageService.findMessages(message, ctx)
-    );
-    return true;
+    return await this.messageService.findMessages(message, ctx);
   }
 
   @Mutation(() => Boolean)

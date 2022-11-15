@@ -46,12 +46,7 @@ export class UserService {
 
       const users = await userRepo
         .createQueryBuilder("users")
-        .where(
-          new NotBrackets((qb) => {
-            qb.where("users.username = :username", { username: user.username });
-          })
-        )
-        .andHaving("users.username = :username", { username })
+        .having("users.username = :username", { username })
         .limit(10)
         .getMany();
 
@@ -135,7 +130,10 @@ export class UserService {
         ? { ...newUser, email: input.email }
         : { ...newUser };
 
-      newUser = input.bio ? { ...newUser, bio: input.bio } : { ...newUser };
+      newUser =
+        input.bio !== null || input.bio !== undefined
+          ? { ...newUser, bio: input.bio }
+          : { ...newUser };
 
       newUser =
         input.theme === true || input.theme === false

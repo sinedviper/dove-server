@@ -36,10 +36,9 @@ export class ResolverUser {
     return payload;
   }
 
-  @Query(() => Boolean)
-  async getMe(@Ctx() ctx: IContext, @PubSub() pubsub: PubSubEngine) {
-    pubsub.publish("User", await this.userService.getMe(ctx));
-    return true;
+  @Query(() => UserResponse)
+  async getMe(@Ctx() ctx: IContext) {
+    return await this.userService.getMe(ctx);
   }
 
   @Mutation(() => UserResponse)
@@ -77,7 +76,7 @@ export class ResolverUser {
     return true;
   }
 
-  @Mutation(() => UserResponse)
+  @Query(() => UserResponse)
   async searchUsers(
     @Arg("input") input: UserSearchInput,
     @Ctx() ctx: IContext
