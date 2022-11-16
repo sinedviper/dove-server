@@ -19,6 +19,7 @@ import {
   UserResponse,
   UpdateInputOnline,
   UserSearchInput,
+  UserSearchResponse,
 } from "../models";
 import { UserService } from "../services";
 import { IContext } from "../interfaces";
@@ -39,6 +40,14 @@ export class ResolverUser {
   @Query(() => UserResponse)
   async getMe(@Ctx() ctx: IContext) {
     return await this.userService.getMe(ctx);
+  }
+
+  @Query(() => UserSearchResponse)
+  async searchUsers(
+    @Arg("input") input: UserSearchInput,
+    @Ctx() ctx: IContext
+  ) {
+    return await this.userService.getSearchUser(input, ctx);
   }
 
   @Mutation(() => UserResponse)
@@ -74,13 +83,5 @@ export class ResolverUser {
   ) {
     pubsub.publish("User", await this.userService.updateUserOnline(input, ctx));
     return true;
-  }
-
-  @Query(() => UserResponse)
-  async searchUsers(
-    @Arg("input") input: UserSearchInput,
-    @Ctx() ctx: IContext
-  ) {
-    return await this.userService.getSearchUser(input, ctx);
   }
 }

@@ -130,6 +130,21 @@ export class UserResponse {
 }
 
 @ObjectType()
+export class UserSearchResponse {
+  @Field(() => String)
+  public status!: string;
+
+  @Field(() => Number)
+  public code!: number;
+
+  @Field(() => [UserData], { nullable: true })
+  public data?: UserData[];
+
+  @Field(() => String, { nullable: true })
+  public message?: string;
+}
+
+@ObjectType()
 export class LoginResponse {
   @Field(() => String)
   public status!: string;

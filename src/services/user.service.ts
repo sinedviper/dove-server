@@ -14,7 +14,6 @@ import {
 } from "../models";
 import { AppDataSource, signJwt } from "../utils";
 import { invalid, success } from "../constants";
-import { NotBrackets } from "typeorm";
 
 dotenv.config();
 
@@ -36,17 +35,20 @@ export class UserService {
     }
   }
 
-  private async findBySearchUser(username: string): Promise<UserData[] | null> {
+  private async findBySearchUser(
+    id: number,
+    username: string
+  ): Promise<UserData[] | null> {
     try {
+      if (username === "") {
+        return null;
+      }
       const userRepo = AppDataSource.getRepository(UserModel);
-      const user = await userRepo
-        .createQueryBuilder("users")
-        .where("users.username = :username", { username })
-        .getOne();
 
       const users = await userRepo
         .createQueryBuilder("users")
-        .having("users.username = :username", { username })
+        .where("users.username LIKE :username", { username: `%${username}%` })
+        .andWhere("users.id != :id", { id })
         .limit(10)
         .getMany();
 
@@ -295,8 +297,10 @@ export class UserService {
         email,
         name,
         surname,
+        bio: "",
         online: new Date(),
         theme: false,
+        animation: false,
         password: String(passwordHash),
       });
 
@@ -528,7 +532,7 @@ export class UserService {
 
       //and if have we return it
       if (message == success && id === input.userId) {
-        const data = await this.findBySearchUser(input.username);
+        const data = await this.findBySearchUser(id, input.username);
 
         return {
           status: success,
