@@ -40,6 +40,9 @@ export class MessageData {
 
   @Field(() => Date)
   public createdAt!: Date;
+
+  @Field(() => Date)
+  public updatedAt!: Date;
 }
 
 @ObjectType()

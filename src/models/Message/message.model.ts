@@ -9,6 +9,7 @@ import {
   ManyToOne,
   Column,
   OneToOne,
+  OneToMany,
 } from "typeorm";
 
 import { ChatModel } from "../Chat";
@@ -35,11 +36,11 @@ export class MessageModel extends BaseEntity {
   public chatId!: Number;
 
   @Field(() => MessageModel, { nullable: true })
-  @OneToOne(() => MessageModel, (reply: MessageModel) => reply.id, {
+  @ManyToOne(() => MessageModel, (reply: MessageModel) => reply.id, {
     nullable: true,
   })
   @JoinColumn({ name: "reply" })
-  public reply?: MessageModel;
+  public reply?: Number;
 
   @Field()
   @CreateDateColumn()

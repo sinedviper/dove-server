@@ -10,11 +10,11 @@ import {
   Subscription,
 } from "type-graphql";
 
-import { MessageModel, MessageResponse, MessageInput } from "../models";
+import { MessageResponse, MessageInput } from "../models";
 import { MessageService } from "../services";
 import { IContext } from "../interfaces";
 
-@Resolver(() => MessageModel)
+@Resolver(() => MessageResponse)
 export class ResolverMessage {
   constructor(private messageService: MessageService) {
     this.messageService = new MessageService();

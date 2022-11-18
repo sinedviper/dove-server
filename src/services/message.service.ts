@@ -12,16 +12,22 @@ export class MessageService {
   private async findByIdAndAdd({
     senderMessage,
     text,
+    reply,
     chatId,
   }: MessageInput): Promise<MessageData[] | string> {
     try {
       if (text.length > 1000 || text.length < 1) {
         return invalid;
       }
+      let replyObj = {};
       //search table
       const messageRepo = AppDataSource.getRepository(MessageModel);
+      if (reply) {
+        replyObj = { reply };
+      }
       //create values
       const message = messageRepo.create({
+        ...replyObj,
         senderMessage,
         text,
         chatId,
@@ -119,11 +125,11 @@ export class MessageService {
 
       let update;
 
-      if (text) {
+      if (text !== "") {
         if (text.length > 1000 || text.length < 1) {
           return invalid;
         }
-        update = text ? { ...update, text } : { ...update };
+        update = text !== "" ? { ...update, text } : { ...update };
       }
 
       update = reply ? { ...update, reply } : { ...update };
