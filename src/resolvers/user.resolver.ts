@@ -50,6 +50,11 @@ export class ResolverUser {
     return await this.userService.getSearchUser(input, ctx);
   }
 
+  @Query(() => UserResponse)
+  async getUser(@Arg("input") input: UserSearchInput, @Ctx() ctx: IContext) {
+    return await this.userService.getUser(input, ctx);
+  }
+
   @Mutation(() => UserResponse)
   async signupUser(@Arg("input") input: SignUpInput) {
     return await this.userService.signUpUser(input);
@@ -82,6 +87,7 @@ export class ResolverUser {
     @PubSub() pubsub: PubSubEngine
   ) {
     pubsub.publish("User", await this.userService.updateUserOnline(input, ctx));
+
     return true;
   }
 }

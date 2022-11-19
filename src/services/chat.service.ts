@@ -239,7 +239,11 @@ export class ChatService {
         return { status: success, code: 201, data: chats };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -253,6 +257,7 @@ export class ChatService {
       if (message == success) {
         //Delete fucntion chat
         const data = await this.findByIdAndDelete(id, userId);
+
         if (data == invalid) {
           return { status: invalid, code: 404, message: "Chat not delete" };
         }
@@ -266,7 +271,11 @@ export class ChatService {
         return { status: success, code: 200, data: chats };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -282,7 +291,11 @@ export class ChatService {
         return { status: success, code: 200, data };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }

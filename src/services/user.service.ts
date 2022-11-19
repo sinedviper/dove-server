@@ -35,7 +35,7 @@ export class UserService {
     }
   }
 
-  private async findBySearchUser(
+  private async findBySearchUsers(
     id: number,
     username: string
   ): Promise<UserData[] | null> {
@@ -53,6 +53,24 @@ export class UserService {
         .getMany();
 
       return users as unknown as UserData[];
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  private async findBySearchUser(username: string): Promise<UserData | null> {
+    try {
+      if (username === "") {
+        return null;
+      }
+      const userRepo = AppDataSource.getRepository(UserModel);
+
+      const user = await userRepo
+        .createQueryBuilder("users")
+        .where("users.username = :username", { username })
+        .getOne();
+
+      return user as unknown as UserData;
     } catch (e) {
       console.log(e);
     }
@@ -392,11 +410,11 @@ export class UserService {
         };
       }
 
-      return {
-        status: invalid,
-        code: 401,
-        message,
-      };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -417,7 +435,11 @@ export class UserService {
         return { status: success, code: 200, message: "Logout" };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -489,7 +511,11 @@ export class UserService {
         return { status: success, code: 200, data, message: "User update" };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -515,7 +541,11 @@ export class UserService {
         return { status: success, code: 200, data, message: "User update" };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -531,8 +561,8 @@ export class UserService {
       const { message, id } = await autorization(req, res);
 
       //and if have we return it
-      if (message == success && id === input.userId) {
-        const data = await this.findBySearchUser(id, input.username);
+      if (message == success) {
+        const data = await this.findBySearchUsers(id, input.username);
 
         return {
           status: success,
@@ -541,11 +571,41 @@ export class UserService {
         };
       }
 
-      return {
-        status: invalid,
-        code: 401,
-        message,
-      };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
+    }
+  }
+
+  // Get search user
+  public async getUser(
+    input: UserSearchInput,
+    { req, res, autorization }: IContext
+  ) {
+    try {
+      //Check have user
+      const { message, id } = await autorization(req, res);
+      console.log(message, id, input.userId);
+      //and if have we return it
+      if (message == success) {
+        const data = await this.findBySearchUser(input.username);
+
+        return {
+          status: success,
+          code: 200,
+          data,
+        };
+      }
+
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }

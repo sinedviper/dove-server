@@ -212,7 +212,11 @@ export class MessageService {
         return { status: success, code: 201, data, message: "Message add" };
       }
 
-      return { status: invalid, code: 401, message: "Invalid user" };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -237,7 +241,11 @@ export class MessageService {
         return { status: success, code: 200, data, message: "Message delete" };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -262,7 +270,11 @@ export class MessageService {
         return { status: success, code: 200, data };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -290,7 +302,11 @@ export class MessageService {
         };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }

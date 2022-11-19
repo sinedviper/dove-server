@@ -146,7 +146,11 @@ export class ContactService {
         };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -176,7 +180,11 @@ export class ContactService {
         };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -197,7 +205,11 @@ export class ContactService {
         return { status: success, code: 200, data };
       }
 
-      return { status: invalid, code: 401, message };
+      if (message == invalid) {
+        return { status: invalid, code: 401, message };
+      }
+
+      return { status: success, code: 200 };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
