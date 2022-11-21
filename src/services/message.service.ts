@@ -19,15 +19,12 @@ export class MessageService {
       if (text.length > 1000 || text.length < 1) {
         return invalid;
       }
-      let replyObj = {};
       //search table
       const messageRepo = AppDataSource.getRepository(MessageModel);
-      if (reply) {
-        replyObj = { reply };
-      }
+
       //create values
       const message = messageRepo.create({
-        ...replyObj,
+        reply,
         senderMessage,
         text,
         chatId,
@@ -108,7 +105,6 @@ export class MessageService {
     id,
     text,
     chatId,
-    reply,
   }: MessageInput): Promise<MessageData[] | string> {
     try {
       //search table
@@ -123,22 +119,15 @@ export class MessageService {
         return invalid;
       }
 
-      let update;
-
-      if (text !== "") {
-        if (text.length > 1000 || text.length < 1) {
-          return invalid;
-        }
-        update = text !== "" ? { ...update, text } : { ...update };
+      if (text.length > 1000 || text.length < 1) {
+        return invalid;
       }
-
-      update = reply ? { ...update, reply } : { ...update };
 
       //update column
       await messageRepo
         .createQueryBuilder()
         .update(MessageModel)
-        .set({ ...update })
+        .set({ text })
         .where("message.id = :id", { id })
         .execute();
 
@@ -213,10 +202,10 @@ export class MessageService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -242,10 +231,10 @@ export class MessageService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -271,10 +260,10 @@ export class MessageService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -303,10 +292,10 @@ export class MessageService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }

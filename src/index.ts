@@ -73,7 +73,9 @@ dotenv.config();
     cors<cors.CorsRequest>(),
     bodyParser.json(),
     expressMiddleware(server, {
-      context: async ({ req, res }) => ({ req, res, autorization }),
+      context: async ({ req, res }) => {
+        return { req, res, autorization };
+      },
     })
   );
 

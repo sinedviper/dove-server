@@ -1,14 +1,4 @@
-import {
-  Arg,
-  Ctx,
-  Mutation,
-  PubSub,
-  PubSubEngine,
-  Query,
-  Resolver,
-  Root,
-  Subscription,
-} from "type-graphql";
+import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
 import { ContactResponse, ContactModel, ContactInput } from "../models";
 import { ContactService } from "../services";
@@ -20,41 +10,24 @@ export class ResolverContact {
     this.contactService = new ContactService();
   }
 
-  @Subscription({
-    topics: "Contact",
-  })
-  contactSubscription(@Root() payload: ContactResponse): ContactResponse {
-    return payload;
-  }
-
   @Query(() => ContactResponse)
   async getContacts(@Ctx() ctx: IContext) {
     return this.contactService.findContacts(ctx);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => ContactResponse)
   async addContact(
     @Arg("contact") contact: ContactInput,
-    @Ctx() ctx: IContext,
-    @PubSub() pubsub: PubSubEngine
+    @Ctx() ctx: IContext
   ) {
-    pubsub.publish(
-      "Contact",
-      await this.contactService.addContact(contact, ctx)
-    );
-    return true;
+    return await this.contactService.addContact(contact, ctx);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => ContactResponse)
   async deleteContact(
     @Arg("contact") contact: ContactInput,
-    @Ctx() ctx: IContext,
-    @PubSub() pubsub: PubSubEngine
+    @Ctx() ctx: IContext
   ) {
-    pubsub.publish(
-      "Contact",
-      await this.contactService.deleteContact(contact, ctx)
-    );
-    return true;
+    return await this.contactService.deleteContact(contact, ctx);
   }
 }

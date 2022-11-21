@@ -411,10 +411,10 @@ export class UserService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -436,10 +436,10 @@ export class UserService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -512,10 +512,10 @@ export class UserService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -542,10 +542,10 @@ export class UserService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -561,7 +561,7 @@ export class UserService {
       const { message, id } = await autorization(req, res);
 
       //and if have we return it
-      if (message == success) {
+      if (message == success && id === Number(input.userId)) {
         const data = await this.findBySearchUsers(id, input.username);
 
         return {
@@ -572,10 +572,10 @@ export class UserService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -589,9 +589,8 @@ export class UserService {
     try {
       //Check have user
       const { message, id } = await autorization(req, res);
-      console.log(message, id, input.userId);
       //and if have we return it
-      if (message == success) {
+      if (message == success && id === Number(input.userId)) {
         const data = await this.findBySearchUser(input.username);
 
         return {
@@ -602,10 +601,10 @@ export class UserService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }

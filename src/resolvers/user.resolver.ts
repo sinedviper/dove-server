@@ -1,14 +1,4 @@
-import {
-  Arg,
-  Ctx,
-  Mutation,
-  PubSub,
-  PubSubEngine,
-  Query,
-  Resolver,
-  Root,
-  Subscription,
-} from "type-graphql";
+import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
 import {
   LoginInput,
@@ -28,13 +18,6 @@ import { IContext } from "../interfaces";
 export class ResolverUser {
   constructor(private userService: UserService) {
     this.userService = new UserService();
-  }
-
-  @Subscription({
-    topics: "User",
-  })
-  userSubscription(@Root() payload: UserResponse): UserResponse {
-    return payload;
   }
 
   @Query(() => UserResponse)
@@ -70,24 +53,16 @@ export class ResolverUser {
     return await this.userService.deleteUser(ctx);
   }
 
-  @Mutation(() => Boolean)
-  async updateUser(
-    @Arg("input") input: UpdateInput,
-    @Ctx() ctx: IContext,
-    @PubSub() pubsub: PubSubEngine
-  ) {
-    pubsub.publish("User", await this.userService.updateUser(input, ctx));
-    return true;
+  @Mutation(() => UserResponse)
+  async updateUser(@Arg("input") input: UpdateInput, @Ctx() ctx: IContext) {
+    return await this.userService.updateUser(input, ctx);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => UserResponse)
   async updateUserOnline(
     @Arg("input") input: UpdateInputOnline,
-    @Ctx() ctx: IContext,
-    @PubSub() pubsub: PubSubEngine
+    @Ctx() ctx: IContext
   ) {
-    pubsub.publish("User", await this.userService.updateUserOnline(input, ctx));
-
-    return true;
+    return await this.userService.updateUserOnline(input, ctx);
   }
 }

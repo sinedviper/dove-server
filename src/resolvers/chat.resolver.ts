@@ -1,14 +1,4 @@
-import {
-  Arg,
-  Ctx,
-  Mutation,
-  PubSub,
-  PubSubEngine,
-  Query,
-  Resolver,
-  Root,
-  Subscription,
-} from "type-graphql";
+import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
 import { ChatResponse, ChatModel, ChatInput } from "../models";
 import { ChatService } from "../services";
@@ -20,36 +10,18 @@ export class ResolverChat {
     this.chatService = new ChatService();
   }
 
-  @Subscription({
-    topics: "Chat",
-  })
-  chatSubscription(@Root() payload: ChatResponse): ChatResponse {
-    return payload;
-  }
-
   @Query(() => ChatResponse)
-  async getChats(@Ctx() ctx: IContext, @PubSub() pubsub: PubSubEngine) {
-    pubsub.publish("Chat", await this.chatService.findChats(ctx));
+  async getChats(@Ctx() ctx: IContext) {
     return await this.chatService.findChats(ctx);
   }
 
-  @Mutation(() => Boolean)
-  async addChat(
-    @Arg("chat") chat: ChatInput,
-    @Ctx() ctx: IContext,
-    @PubSub() pubsub: PubSubEngine
-  ) {
-    pubsub.publish("Chat", await this.chatService.addChat(chat, ctx));
-    return true;
+  @Mutation(() => ChatResponse)
+  async addChat(@Arg("chat") chat: ChatInput, @Ctx() ctx: IContext) {
+    return await this.chatService.addChat(chat, ctx);
   }
 
-  @Mutation(() => Boolean)
-  async deleteChat(
-    @Arg("idChat") id: number,
-    @Ctx() ctx: IContext,
-    @PubSub() pubsub: PubSubEngine
-  ) {
-    pubsub.publish("Chat", await this.chatService.deleteChat(id, ctx));
-    return true;
+  @Mutation(() => ChatResponse)
+  async deleteChat(@Arg("idChat") id: number, @Ctx() ctx: IContext) {
+    return await this.chatService.deleteChat(id, ctx);
   }
 }

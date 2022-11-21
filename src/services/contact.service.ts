@@ -147,10 +147,10 @@ export class ContactService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -181,10 +181,10 @@ export class ContactService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
@@ -206,10 +206,10 @@ export class ContactService {
       }
 
       if (message == invalid) {
-        return { status: invalid, code: 401, message };
+        return { status: invalid, code: 401, message: "Unauthorized" };
       }
 
-      return { status: success, code: 200 };
+      return { status: success, code: 406, message: "Not Acceptable" };
     } catch (e) {
       return { status: invalid, code: 500, message: e.message };
     }
