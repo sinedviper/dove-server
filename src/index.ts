@@ -6,6 +6,7 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 import { expressMiddleware } from "@apollo/server/express4";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
+import { Server } from "socket.io";
 import { useServer } from "graphql-ws/lib/use/ws";
 import http from "http";
 import express from "express";
@@ -20,6 +21,7 @@ import {
 } from "./resolvers";
 import { AppDataSource } from "./utils";
 import { autorization } from "./middleware";
+import { MessageType, stringifyMessage } from "graphql-ws";
 
 dotenv.config();
 
@@ -28,42 +30,45 @@ dotenv.config();
     resolvers: [ResolverUser, ResolverContact, ResolverChat, ResolverMessage],
   });
 
-  const app = express();
-  const httpServer = http.createServer(app);
-
-  const wsServer = new WebSocketServer({
-    server: httpServer,
-    path: "/graphql",
-  });
-
   const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-  const serverCleanup = useServer(
-    {
-      schema,
-      onConnect() {
-        console.log("WebSocket connect!");
-      },
-      onDisconnect() {
-        console.log("WebSocket disconnect!");
-      },
-    },
-    wsServer
-  );
+  const app = express();
+  const httpServer = http.createServer(app);
+  // const io = new Server(httpServer, { path: "/graphql" });
+
+  // const wsServer = new WebSocketServer({
+  //   server: httpServer,
+  //   path: "/graphql",
+  // });
+
+  // const serverCleanup = useServer(
+  //   {
+  //     schema,
+  //     onDisconnect() {
+  //       console.log("WebSocket disconnect!");
+  //     },
+  //     onConnect: (ctx: any) => {
+  //       ctx.connectionParams = { id: "12323" };
+  //       console.log(ctx);
+  //       console.log("WebSocket connect!");
+  //     },
+  //   },
+  //   wsServer
+  // );
 
   const server = new ApolloServer({
     schema,
     plugins: [
       ApolloServerPluginDrainHttpServer({ httpServer }),
-      {
-        async serverWillStart() {
-          return {
-            async drainServer() {
-              await serverCleanup.dispose();
-            },
-          };
-        },
-      },
+      // {
+      //   async serverWillStart() {
+      //     return {
+      //       async drainServer() {
+      //         await serverCleanup.dispose();
+      //       },
+      //     };
+      //   },
+      // },
     ],
   });
 
@@ -90,6 +95,13 @@ dotenv.config();
     .catch((err) => {
       console.error("ErrorServer: " + err);
     });
+
+  // io.on("connection", (socket) => {
+  //   console.log("a user connected");
+  //   socket.on("disconnect", () => {
+  //     console.log("user disconnected");
+  //   });
+  // });
 
   AppDataSource.initialize()
     .then(() => {
