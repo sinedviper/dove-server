@@ -1,7 +1,7 @@
 import { Request } from "express";
 
-import { success } from "../constants";
-import { verifyJwt } from "../utils";
+import { success } from "../utils/constants";
+import { verifyJwt } from "../utils/helpers";
 
 interface Data {
   id: number | undefined;

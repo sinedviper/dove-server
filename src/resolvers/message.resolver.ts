@@ -1,50 +1,14 @@
-import {
-  Arg,
-  Ctx,
-  Mutation,
-  PubSub,
-  PubSubEngine,
-  Query,
-  Resolver,
-  ResolverFilterData,
-  Root,
-  Subscription,
-} from "type-graphql";
-import { PubSub as PubSubS, withFilter } from "graphql-subscriptions";
+import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
-import { MessageResponse, MessageInput } from "../models";
+import { MessageResponse, MessageInput } from "../models/Message";
 import { MessageService } from "../services";
-import { IContext } from "../interfaces";
+import { IContext } from "../utils/interfaces";
 
-const pubsub = new PubSubS();
 @Resolver(() => MessageResponse)
 export class ResolverMessage {
   constructor(private messageService: MessageService) {
     this.messageService = new MessageService();
   }
-
-  // @Subscription({
-  //   topics: "Message",
-  //   // filter: ({ payload, args, context }: ResolverFilterData<any>) => {
-  //   //   console.log(context);
-  //   //   return payload.recipeId === args.recipeId;
-  //   // },
-  //   // subscribe: withFilter(
-  //   //   () => pubsub.asyncIterator("Message"),
-  //   //   (payload, variables) => {
-  //   //     return payload.receiverMail === variables.receiverMail;
-  //   //   }
-  //   // ),
-  //   // subscribe: withFilter(
-  //   //   () => pubsub.asyncIterator("Message"),
-  //   //   async (rootValue, args, context, info) => {
-  //   //     return true;
-  //   //   }
-  //   // ),
-  // })
-  // messageSubscription(@Root() payload: MessageResponse): MessageResponse {
-  //   return payload;
-  // }
 
   @Query(() => MessageResponse)
   async getMessages(
@@ -58,12 +22,7 @@ export class ResolverMessage {
   async updateMessage(
     @Arg("message") message: MessageInput,
     @Ctx() ctx: IContext
-    //@PubSub() pubsub: PubSubEngine
   ) {
-    // pubsub.publish(
-    //   "Message",
-
-    // );
     return await this.messageService.updateMessage(message, ctx);
   }
 
@@ -71,12 +30,7 @@ export class ResolverMessage {
   async addMessage(
     @Arg("message") message: MessageInput,
     @Ctx() ctx: IContext
-    //@PubSub() pubsub: PubSubEngine
   ) {
-    // pubsub.publish(
-    //   "Message",
-
-    // );
     return await this.messageService.addMessage(message, ctx);
   }
 
@@ -84,12 +38,7 @@ export class ResolverMessage {
   async deleteMessage(
     @Arg("message") message: MessageInput,
     @Ctx() ctx: IContext
-    //@PubSub() pubsub: PubSubEngine
   ) {
-    // pubsub.publish(
-    //   "Message",
-
-    // );
     return await this.messageService.deleteMessage(message, ctx);
   }
 }

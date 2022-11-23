@@ -1,18 +1,18 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
 import {
-  LoginInput,
-  LoginResponse,
-  SignUpInput,
-  UpdateInput,
   UserModel,
   UserResponse,
-  UpdateInputOnline,
-  UserSearchInput,
   UserSearchResponse,
-} from "../models";
+  UserSearchInput,
+  SignUpInput,
+  LoginResponse,
+  LoginInput,
+  UpdateInput,
+  UpdateInputOnline,
+} from "../models/User";
 import { UserService } from "../services";
-import { IContext } from "../interfaces";
+import { IContext } from "../utils/interfaces";
 
 @Resolver(() => UserModel)
 export class ResolverUser {

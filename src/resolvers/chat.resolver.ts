@@ -1,8 +1,8 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
-import { ChatResponse, ChatModel, ChatInput } from "../models";
+import { ChatResponse, ChatModel, ChatInput } from "../models/Chat";
 import { ChatService } from "../services";
-import { IContext } from "../interfaces";
+import { IContext } from "../utils/interfaces";
 
 @Resolver(() => ChatModel)
 export class ResolverChat {

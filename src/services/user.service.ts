@@ -1,7 +1,9 @@
 import * as dotenv from "dotenv";
 import * as bcrypt from "bcrypt";
 
-import { IContext } from "../interfaces";
+import { IContext } from "../utils/interfaces";
+import { AppDataSource, signJwt } from "../utils/helpers";
+import { invalid, success } from "../utils/constants";
 import {
   LoginInput,
   UserModel,
@@ -11,9 +13,7 @@ import {
   UserLogin,
   UpdateInputOnline,
   UserSearchInput,
-} from "../models";
-import { AppDataSource, signJwt } from "../utils";
-import { invalid, success } from "../constants";
+} from "../models/User";
 
 dotenv.config();
 

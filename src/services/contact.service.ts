@@ -1,9 +1,10 @@
 import * as dotenv from "dotenv";
 
-import { invalid, success } from "../constants";
-import { IContext } from "../interfaces";
-import { ContactInput, ContactModel, UserData } from "../models";
-import { AppDataSource } from "../utils";
+import { invalid, success } from "../utils/constants";
+import { IContext } from "../utils/interfaces";
+import { AppDataSource } from "../utils/helpers";
+import { ContactInput, ContactModel } from "../models/Contact";
+import { UserData } from "../models/User";
 
 dotenv.config();
 

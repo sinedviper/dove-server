@@ -1,8 +1,8 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
-import { ContactResponse, ContactModel, ContactInput } from "../models";
+import { ContactResponse, ContactModel, ContactInput } from "../models/Contact";
 import { ContactService } from "../services";
-import { IContext } from "../interfaces";
+import { IContext } from "../utils/interfaces";
 
 @Resolver(() => ContactModel)
 export class ResolverContact {

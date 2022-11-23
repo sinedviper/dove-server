@@ -1,7 +1,11 @@
 import { DataSource } from "typeorm";
 import * as dotenv from "dotenv";
 
-import { ContactModel, UserModel, ChatModel, MessageModel } from "../models";
+import { ChatModel } from "../../models/Chat";
+import { ContactModel } from "../../models/Contact";
+import { MessageModel } from "../../models/Message";
+import { UserModel } from "../../models/User";
+
 dotenv.config();
 
 export const AppDataSource = new DataSource({

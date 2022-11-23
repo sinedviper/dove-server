@@ -1,7 +1,7 @@
 {
   "name": "telegram-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Server for Dove",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/index.ts",
@@ -19,18 +19,12 @@
     "class-validator": "^0.13.2",
     "dotenv": "^16.0.3",
     "graphql": "^15.3.0",
-    "graphql-redis-subscriptions": "^2.5.0",
-    "graphql-subscriptions": "^2.0.0",
-    "graphql-ws": "^5.11.2",
-    "graphql-yoga": "^3.0.1",
     "jsonwebtoken": "^8.5.1",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.20",
     "reflect-metadata": "^0.1.13",
-    "socket.io": "^4.5.3",
     "tsconfig-paths": "^4.1.0",
-    "typeorm": "^0.3.10",
-    "ws": "^8.11.0"
+    "typeorm": "^0.3.10"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.9",

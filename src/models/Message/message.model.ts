@@ -8,12 +8,11 @@ import {
   JoinColumn,
   ManyToOne,
   Column,
-  OneToOne,
-  OneToMany,
 } from "typeorm";
 
 import { ChatModel } from "../Chat";
 import { UserModel } from "../User";
+
 @ObjectType()
 @Entity({ name: "message" })
 export class MessageModel extends BaseEntity {

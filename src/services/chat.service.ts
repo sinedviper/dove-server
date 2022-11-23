@@ -1,9 +1,11 @@
 import * as dotenv from "dotenv";
 
-import { invalid, success } from "../constants";
-import { IContext } from "../interfaces";
-import { ChatInput, UserData, ChatModel, MessageModel, Chats } from "../models";
-import { AppDataSource } from "../utils";
+import { invalid, success } from "../utils/constants";
+import { IContext } from "../utils/interfaces";
+import { AppDataSource } from "../utils/helpers";
+import { ChatInput, ChatModel, Chats } from "../models/Chat";
+import { MessageModel } from "../models/Message";
+import { UserData } from "../models/User";
 
 dotenv.config();
 
