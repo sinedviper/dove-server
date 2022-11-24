@@ -5,6 +5,7 @@ import { ChatModel } from "../../models/Chat";
 import { ContactModel } from "../../models/Contact";
 import { MessageModel } from "../../models/Message";
 import { UserModel } from "../../models/User";
+import { UploadModel } from "../../models/Upload";
 
 dotenv.config();
 
@@ -17,5 +18,5 @@ export const AppDataSource = new DataSource({
   database: process.env.DATABASE,
   synchronize: true,
   charset: "utf8mb4",
-  entities: [UserModel, ContactModel, ChatModel, MessageModel],
+  entities: [UserModel, ContactModel, ChatModel, MessageModel, UploadModel],
 });

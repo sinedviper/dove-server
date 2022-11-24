@@ -5,6 +5,7 @@ import { buildTypeDefsAndResolvers } from "type-graphql/dist/utils/buildTypeDefs
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { expressMiddleware } from "@apollo/server/express4";
 import { makeExecutableSchema } from "@graphql-tools/schema";
+import { graphqlUploadExpress } from "graphql-upload-ts";
 import http from "http";
 import express from "express";
 import cors from "cors";
@@ -18,12 +19,19 @@ import {
 } from "./resolvers";
 import { AppDataSource } from "./utils/helpers";
 import { autorization } from "./middleware";
+import { ResolverUpload } from "./resolvers/upload.resolver";
 
 dotenv.config();
 
 (async (): Promise<void> => {
   const { typeDefs, resolvers } = await buildTypeDefsAndResolvers({
-    resolvers: [ResolverUser, ResolverContact, ResolverChat, ResolverMessage],
+    resolvers: [
+      ResolverUser,
+      ResolverContact,
+      ResolverChat,
+      ResolverMessage,
+      ResolverUpload,
+    ],
   });
 
   const schema = makeExecutableSchema({ typeDefs, resolvers });
@@ -37,6 +45,9 @@ dotenv.config();
   });
 
   await server.start();
+
+  app.use(graphqlUploadExpress({ maxFileSize: 5000000, maxFiles: 10 }));
+
   app.use(
     "/graphql",
     cors<cors.CorsRequest>(),

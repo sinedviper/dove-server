@@ -1,3 +1,4 @@
+import { UploadModel } from "./../Upload/upload.model";
 import { Field, ID, ObjectType } from "type-graphql";
 import {
   Column,
@@ -66,6 +67,9 @@ export class UserModel extends BaseEntity {
 
   @OneToMany(() => ContactModel, (contact: ContactModel) => contact.userId)
   userId: ContactModel[];
+
+  @OneToMany(() => UploadModel, (upload: UploadModel) => upload.userUploadId)
+  userUploadId: UploadModel[];
 
   @OneToMany(() => ContactModel, (contact: ContactModel) => contact.contactId)
   contactId: ContactModel[];
