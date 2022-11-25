@@ -1,11 +1,9 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
-import { FileUpload, GraphQLUpload } from "graphql-upload-ts";
-import fs from "ts-fs-promise";
+import fs from "fs";
 
 import { UploadResponse } from "../models/Upload";
 import { IContext } from "../utils/interfaces";
 import { UploadService } from "../services";
-import storeUpload from "../utils/helpers/storeUpload";
 
 @Resolver(() => UploadResponse)
 export class ResolverUpload {
@@ -19,21 +17,13 @@ export class ResolverUpload {
   }
 
   @Mutation(() => UploadResponse)
-  async addUpload(
-    @Arg("upload", () => GraphQLUpload) upload: FileUpload,
-    @Ctx() ctx: IContext
-  ) {
-    const file = await storeUpload(upload);
-    return await this.uploadService.addFile(file, ctx);
-  }
-
-  @Mutation(() => UploadResponse)
   async deleteUpload(
     @Arg("file") file: string,
     @Arg("id") id: number,
     @Ctx() ctx: IContext
   ) {
-    //await fs.remove(__dirname + "src/images/" + file);
+    const filePath = __dirname + "/images/" + file;
+    fs.rmSync(filePath);
     return await this.uploadService.deleteFile(id, ctx);
   }
 }

@@ -5,7 +5,7 @@ import { buildTypeDefsAndResolvers } from "type-graphql/dist/utils/buildTypeDefs
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { expressMiddleware } from "@apollo/server/express4";
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { graphqlUploadExpress } from "graphql-upload-ts";
+import multer from "multer";
 import http from "http";
 import express from "express";
 import cors from "cors";
@@ -16,10 +16,12 @@ import {
   ResolverContact,
   ResolverChat,
   ResolverMessage,
+  ResolverUpload,
 } from "./resolvers";
-import { AppDataSource } from "./utils/helpers";
+import { AppDataSource, storage } from "./utils/helpers";
 import { autorization } from "./middleware";
-import { ResolverUpload } from "./resolvers/upload.resolver";
+import { UploadService } from "./services";
+import { invalid } from "./utils/constants";
 
 dotenv.config();
 
@@ -46,7 +48,34 @@ dotenv.config();
 
   await server.start();
 
-  app.use(graphqlUploadExpress({ maxFileSize: 5000000, maxFiles: 10 }));
+  const uploadService = new UploadService();
+
+  const upload = multer({ storage });
+  app.use(cors());
+  app.use("/images", express.static(__dirname + "/images/"));
+  app.post(
+    "/upload",
+    async (req, res, next) => {
+      const auth = await autorization(req);
+      if (auth?.id === undefined) {
+        return res.json({
+          status: invalid,
+          code: 401,
+          message: "Unauthorized",
+        });
+      }
+      next();
+    },
+    upload.single("image"),
+    async (req, res) =>
+      res.json(
+        await uploadService.addFile(req.file.originalname, {
+          req,
+          res,
+          autorization,
+        })
+      )
+  );
 
   app.use(
     "/graphql",

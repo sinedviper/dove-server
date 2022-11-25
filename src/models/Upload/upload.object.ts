@@ -6,7 +6,7 @@ export class UploadData {
   public id!: number;
 
   @Field()
-  public userUploadId!: string;
+  public userUploadId!: number;
 
   @Field()
   public file!: string;
