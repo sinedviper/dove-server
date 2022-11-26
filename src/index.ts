@@ -1,7 +1,6 @@
 import "reflect-metadata";
-import * as dotenv from "dotenv";
 import { ApolloServer } from "@apollo/server";
-import { buildTypeDefsAndResolvers } from "type-graphql/dist/utils/buildTypeDefsAndResolvers";
+import { buildTypeDefsAndResolvers } from "type-graphql";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { expressMiddleware } from "@apollo/server/express4";
 import { makeExecutableSchema } from "@graphql-tools/schema";
@@ -10,6 +9,7 @@ import http from "http";
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
+import * as dotenv from "dotenv";
 
 import {
   ResolverUser,
@@ -51,7 +51,8 @@ dotenv.config();
   const uploadService = new UploadService();
 
   const upload = multer({ storage });
-  app.use(cors());
+
+  app.use(cors<cors.CorsRequest>());
   app.use("/images", express.static(__dirname + "/images/"));
   app.post(
     "/upload",
@@ -79,12 +80,9 @@ dotenv.config();
 
   app.use(
     "/graphql",
-    cors<cors.CorsRequest>(),
     bodyParser.json(),
     expressMiddleware(server, {
-      context: async ({ req, res }) => {
-        return { req, res, autorization };
-      },
+      context: async ({ req, res }) => ({ req, res, autorization }),
     })
   );
 

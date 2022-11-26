@@ -1,5 +1,6 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import fs from "fs";
+import path from "path";
 
 import { UploadResponse } from "../models/Upload";
 import { IContext } from "../utils/interfaces";
@@ -13,18 +14,19 @@ export class ResolverUpload {
 
   @Query(() => UploadResponse)
   async getUpload(@Ctx() ctx: IContext) {
-    console.log(await this.uploadService.findFiles(ctx));
     return await this.uploadService.findFiles(ctx);
   }
 
   @Mutation(() => UploadResponse)
   async deleteUpload(
     @Arg("file") file: string,
-    @Arg("id") id: number,
+    @Arg("idPhoto") idPhoto: number,
     @Ctx() ctx: IContext
   ) {
-    const filePath = __dirname + "/images/" + file;
-    fs.rmSync(filePath);
-    return await this.uploadService.deleteFile(id, ctx);
+    const filePath = path.dirname("src") + "/src/images/" + file;
+    fs.unlink(filePath, (err) => {
+      if (err) console.log(err.message);
+    });
+    return await this.uploadService.deleteFile(idPhoto, ctx);
   }
 }

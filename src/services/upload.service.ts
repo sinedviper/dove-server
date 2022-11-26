@@ -34,7 +34,9 @@ export class UploadService {
         return invalid;
       }
       //give contacts
-      return findUploads as unknown as UploadModel[];
+      return findUploads.sort(
+        (a: any, b: any) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+      ) as unknown as UploadModel[];
     } catch (e) {
       console.log(e);
       return invalid;
@@ -75,7 +77,9 @@ export class UploadService {
       }
 
       //give upload
-      return findUploads as unknown as UploadData[];
+      return findUploads.sort(
+        (a: any, b: any) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+      ) as unknown as UploadData[];
     } catch (e) {
       console.log(e);
       return invalid;
@@ -100,7 +104,9 @@ export class UploadService {
       }
 
       //give upload
-      return findUpload as unknown as UploadData[];
+      return findUpload.sort(
+        (a: any, b: any) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+      ) as unknown as UploadData[];
     } catch (e) {
       console.log(e);
       return invalid;

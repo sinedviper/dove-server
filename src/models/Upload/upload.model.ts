@@ -5,11 +5,7 @@ import {
   PrimaryGeneratedColumn,
   BaseEntity,
   Column,
-  ManyToOne,
-  JoinColumn,
 } from "typeorm";
-
-import { UserModel } from "../User";
 
 @ObjectType()
 @Entity({ name: "upload" })
@@ -18,9 +14,8 @@ export class UploadModel extends BaseEntity {
   @PrimaryGeneratedColumn()
   public id!: number;
 
-  @Field(() => UserModel)
-  @ManyToOne(() => UserModel, (user: UserModel) => user.id)
-  @JoinColumn({ name: "userUploadId" })
+  @Field()
+  @Column()
   public userUploadId!: number;
 
   @Field()

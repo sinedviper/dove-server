@@ -68,8 +68,8 @@ export class UserModel extends BaseEntity {
   @OneToMany(() => ContactModel, (contact: ContactModel) => contact.userId)
   userId: ContactModel[];
 
-  @OneToMany(() => UploadModel, (upload: UploadModel) => upload.userUploadId)
-  userUploadId: UploadModel[];
+  // @OneToMany(() => UploadModel, (upload: UploadModel) => upload.userUploadId)
+  // userUploadId: UploadModel[];
 
   @OneToMany(() => ContactModel, (contact: ContactModel) => contact.contactId)
   contactId: ContactModel[];
