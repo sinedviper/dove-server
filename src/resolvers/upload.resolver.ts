@@ -13,6 +13,7 @@ export class ResolverUpload {
 
   @Query(() => UploadResponse)
   async getUpload(@Ctx() ctx: IContext) {
+    console.log(await this.uploadService.findFiles(ctx));
     return await this.uploadService.findFiles(ctx);
   }
 

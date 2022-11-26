@@ -28,7 +28,6 @@ export class UploadService {
       const findUploads = await uploadRepo
         .createQueryBuilder("upload")
         .where("upload.userUploadId = :userUploadId", { userUploadId })
-        .leftJoinAndSelect("upload.userUploadId", "userUploadId")
         .getMany();
 
       if (!findUploads) {
@@ -69,7 +68,6 @@ export class UploadService {
       const findUploads = await uploadRepo
         .createQueryBuilder("upload")
         .where("upload.userUploadId = :userUploadId", { userUploadId })
-        .leftJoinAndSelect("upload.userUploadId", "userUploadId")
         .getMany();
 
       if (!findUploads) {
@@ -95,7 +93,6 @@ export class UploadService {
       const findUpload = await uploadRepo
         .createQueryBuilder("upload")
         .where("upload.userUploadId = :userUploadId", { userUploadId })
-        .leftJoinAndSelect("upload.userUploadId", "userUploadId")
         .getMany();
 
       if (!findUpload) {
@@ -183,6 +180,7 @@ export class UploadService {
       if (message == success) {
         //Find function contact
         const data = await this.findUpload(id);
+
         if (data == invalid) {
           return { status: invalid, code: 404, message: "Can't find" };
         }
