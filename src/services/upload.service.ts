@@ -112,8 +112,35 @@ export class UploadService {
       return invalid;
     }
   }
+
+  //find upload User
+  private async findUploadUser(
+    userUploadId: number
+  ): Promise<UploadData | string> {
+    try {
+      //search table
+      const uploadRepo = AppDataSource.getRepository(UploadModel);
+      //find values
+      const findUpload = await uploadRepo
+        .createQueryBuilder("upload")
+        .where("upload.userUploadId = :userUploadId", { userUploadId })
+        .getMany();
+
+      if (!findUpload) {
+        return invalid;
+      }
+
+      //give upload
+      return findUpload.sort(
+        (a: any, b: any) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+      )[0] as unknown as UploadData;
+    } catch (e) {
+      console.log(e);
+      return invalid;
+    }
+  }
   //-----------------------------------------------------------Public function-------------------------------------------------
-  //Add contact
+  //Add upload
   public async addFile(file: string, { req, res, autorization }: IContext) {
     try {
       const { message, id } = await autorization(req, res);
@@ -144,7 +171,7 @@ export class UploadService {
     }
   }
 
-  //Delete Contact
+  //Delete upload
   public async deleteFile(
     fileId: number,
     { req, res, autorization }: IContext
@@ -186,6 +213,35 @@ export class UploadService {
       if (message == success) {
         //Find function contact
         const data = await this.findUpload(id);
+
+        if (data == invalid) {
+          return { status: invalid, code: 404, message: "Can't find" };
+        }
+
+        return { status: success, code: 200, data };
+      }
+
+      if (message == invalid) {
+        return { status: invalid, code: 401, message: "Unauthorized" };
+      }
+
+      return { status: success, code: 406, message: "Not Acceptable" };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
+    }
+  }
+
+  //Find UploadUser
+  public async findUploadsUser(
+    id: number,
+    { req, res, autorization }: IContext
+  ) {
+    try {
+      const { message } = await autorization(req, res);
+
+      if (message == success) {
+        //Find function contact
+        const data = await this.findUploadUser(id);
 
         if (data == invalid) {
           return { status: invalid, code: 404, message: "Can't find" };

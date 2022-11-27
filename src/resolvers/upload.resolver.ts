@@ -2,7 +2,7 @@ import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import fs from "fs";
 import path from "path";
 
-import { UploadResponse } from "../models/Upload";
+import { UploadResponse, UploadResponseUser } from "../models/Upload";
 import { IContext } from "../utils/interfaces";
 import { UploadService } from "../services";
 
@@ -15,6 +15,11 @@ export class ResolverUpload {
   @Query(() => UploadResponse)
   async getUpload(@Ctx() ctx: IContext) {
     return await this.uploadService.findFiles(ctx);
+  }
+
+  @Query(() => UploadResponseUser)
+  async getUploadUser(@Arg("idUser") idUser: number, @Ctx() ctx: IContext) {
+    return await this.uploadService.findUploadsUser(idUser, ctx);
   }
 
   @Mutation(() => UploadResponse)

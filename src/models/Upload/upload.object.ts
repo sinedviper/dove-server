@@ -29,3 +29,18 @@ export class UploadResponse {
   @Field(() => String, { nullable: true })
   public message?: string;
 }
+
+@ObjectType()
+export class UploadResponseUser {
+  @Field(() => String)
+  public status!: string;
+
+  @Field(() => Number)
+  public code!: number;
+
+  @Field(() => UploadData, { nullable: true })
+  public data?: UploadData;
+
+  @Field(() => String, { nullable: true })
+  public message?: string;
+}

@@ -4,6 +4,7 @@ import { invalid, success } from "../utils/constants";
 import { IContext } from "../utils/interfaces";
 import { AppDataSource } from "../utils/helpers";
 import { ChatInput, ChatModel, Chats } from "../models/Chat";
+import { UploadModel } from "../models/Upload";
 import { MessageModel } from "../models/Message";
 import { UserData } from "../models/User";
 
@@ -144,6 +145,7 @@ export class ChatService {
       //search table
       const chatRepo = AppDataSource.getRepository(ChatModel);
       const messageRepo = AppDataSource.getRepository(MessageModel);
+      const uploadRepo = AppDataSource.getRepository(UploadModel);
       //take table
       const findChatSender = await chatRepo
         .createQueryBuilder("chat")
@@ -153,7 +155,7 @@ export class ChatService {
         .getMany();
 
       const chatSender = await Promise.all(
-        findChatSender.map(async (obj) => {
+        findChatSender.map(async (obj: any) => {
           const findMessage = await messageRepo
             .createQueryBuilder("message")
             .where("message.chatId = :chatId", { chatId: obj.id })
@@ -161,14 +163,23 @@ export class ChatService {
             .leftJoinAndSelect("message.chatId", "chatId")
             .getMany();
 
+          const findRepo = await uploadRepo
+            .createQueryBuilder("upload")
+            .where("upload.userUploadId = :userUploadId", {
+              userUploadId: obj.recipient.id,
+            })
+            .getMany();
+
           return {
             ...obj,
-            lastMessage: findMessage
-              .sort(
-                (a: any, b: any) =>
-                  Date.parse(a.createdAt) - Date.parse(b.createdAt)
-              )
-              .slice(-1),
+            lastMessage: findMessage.sort(
+              (a: any, b: any) =>
+                Date.parse(b.createdAt) - Date.parse(a.createdAt)
+            )[0],
+            image: findRepo.sort(
+              (a: any, b: any) =>
+                Date.parse(b.createdAt) - Date.parse(a.createdAt)
+            )[0],
           };
         })
       );
@@ -182,7 +193,7 @@ export class ChatService {
         .getMany();
 
       const chatReceipt = await Promise.all(
-        findChatReceipt.map(async (obj) => {
+        findChatReceipt.map(async (obj: any) => {
           const findMessage = await messageRepo
             .createQueryBuilder("message")
             .where("message.chatId = :chatId", { chatId: obj.id })
@@ -190,14 +201,23 @@ export class ChatService {
             .leftJoinAndSelect("message.chatId", "chatId")
             .getMany();
 
+          const findRepo = await uploadRepo
+            .createQueryBuilder("upload")
+            .where("upload.userUploadId = :userUploadId", {
+              userUploadId: obj.sender.id,
+            })
+            .getMany();
+
           return {
             ...obj,
-            lastMessage: findMessage
-              .sort(
-                (a: any, b: any) =>
-                  Date.parse(a.createdAt) - Date.parse(b.createdAt)
-              )
-              .slice(-1),
+            lastMessage: findMessage.sort(
+              (a: any, b: any) =>
+                Date.parse(b.createdAt) - Date.parse(a.createdAt)
+            )[0],
+            image: findRepo.sort(
+              (a: any, b: any) =>
+                Date.parse(b.createdAt) - Date.parse(a.createdAt)
+            )[0],
           };
         })
       );
@@ -206,13 +226,15 @@ export class ChatService {
       const rec = chatReceipt.map((obj) => ({
         id: obj.id,
         user: obj.sender,
-        lastMessage: obj.lastMessage[0],
+        lastMessage: obj.lastMessage,
+        image: obj.image,
       }));
 
       const sen = chatSender.map((obj) => ({
         id: obj.id,
         user: obj.recipient,
-        lastMessage: obj.lastMessage[0],
+        lastMessage: obj.lastMessage,
+        image: obj.image,
       }));
 
       return [...sen, ...rec] as unknown as Chats[];

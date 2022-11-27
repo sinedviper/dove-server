@@ -1,3 +1,4 @@
+import { UploadData } from "./../Upload/upload.object";
 import { ObjectType, Field } from "type-graphql";
 
 import { MessageData } from "../Message";
@@ -13,6 +14,9 @@ export class Chats {
 
   @Field(() => MessageData, { nullable: true })
   public lastMessage?: MessageData;
+
+  @Field(() => UploadData, { nullable: true })
+  public image?: UploadData;
 }
 
 @ObjectType()
