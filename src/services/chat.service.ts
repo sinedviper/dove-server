@@ -86,7 +86,7 @@ export class ChatService {
       //connect table
       const chatRepo = AppDataSource.getRepository(ChatModel);
       //search in table
-      let user = await chatRepo
+      let user: any = await chatRepo
         .createQueryBuilder("chat")
         .where("chat.id = :id", { id: Number(id) })
         .leftJoinAndSelect("chat.sender", "sender")
@@ -95,6 +95,15 @@ export class ChatService {
 
       if (!user) {
         return invalid;
+      }
+
+      if (user.sender.id === user.recipient.id) {
+        await chatRepo
+          .createQueryBuilder("chat")
+          .delete()
+          .where("chat.id = :id", { id })
+          .execute();
+        return success;
       }
 
       const userSender: UserData = user.sender as unknown as UserData;
@@ -230,12 +239,14 @@ export class ChatService {
         image: obj.image,
       }));
 
-      const sen = chatSender.map((obj) => ({
-        id: obj.id,
-        user: obj.recipient,
-        lastMessage: obj.lastMessage,
-        image: obj.image,
-      }));
+      const sen = chatSender
+        .map((obj) => ({
+          id: obj.id,
+          user: obj.recipient,
+          lastMessage: obj.lastMessage,
+          image: obj.image,
+        }))
+        .filter((chat) => chat.user.id !== sender);
 
       return [...sen, ...rec] as unknown as Chats[];
     } catch (e) {

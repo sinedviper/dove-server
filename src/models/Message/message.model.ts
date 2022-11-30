@@ -29,9 +29,9 @@ export class MessageModel extends BaseEntity {
   @Column("text")
   public text!: String;
 
-  @Field(() => Boolean)
+  @Field(() => Boolean, { nullable: true })
   @Column()
-  public read!: Boolean;
+  public read?: Boolean;
 
   @Field(() => ChatModel)
   @ManyToOne(() => ChatModel, (chat: ChatModel) => chat.id, {

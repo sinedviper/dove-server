@@ -11,6 +11,9 @@ export class MessageInput {
   @Field(() => String, { nullable: true })
   public text?: string;
 
+  @Field(() => Boolean, { nullable: true })
+  public read?: boolean;
+
   @Field(() => Number, { nullable: true })
   public reply?: number;
 

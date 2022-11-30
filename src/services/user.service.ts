@@ -48,6 +48,7 @@ export class UserService {
       const users = await userRepo
         .createQueryBuilder("users")
         .where("users.username LIKE :username", { username: `%${username}%` })
+        //.andWhere("users.id != :id", { id })
         .limit(10)
         .getMany();
 

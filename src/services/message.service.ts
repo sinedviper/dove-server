@@ -284,7 +284,6 @@ export class MessageService {
         if (data == invalid) {
           return { status: invalid, code: 404, message: "Message not delete" };
         }
-
         return { status: success, code: 200, data };
       }
 
