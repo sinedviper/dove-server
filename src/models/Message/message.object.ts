@@ -20,6 +20,9 @@ export class MessageData {
   @Field(() => MessageReply, { nullable: true })
   public reply?: number;
 
+  @Field(() => Boolean)
+  public read!: boolean;
+
   @Field(() => Date)
   public createdAt!: Date;
 

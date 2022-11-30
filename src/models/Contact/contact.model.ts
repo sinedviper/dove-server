@@ -19,12 +19,16 @@ export class ContactModel extends BaseEntity {
   public id!: number;
 
   @Field(() => UserModel)
-  @ManyToOne(() => UserModel, (user: UserModel) => user.id)
+  @ManyToOne(() => UserModel, (user: UserModel) => user.id, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "userId" })
   public userId!: Number;
 
   @Field(() => UserModel)
-  @ManyToOne(() => UserModel, (user: UserModel) => user.id)
+  @ManyToOne(() => UserModel, (user: UserModel) => user.id, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "contactId" })
   public contactId!: Number;
 

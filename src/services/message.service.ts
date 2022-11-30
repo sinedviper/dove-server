@@ -24,6 +24,7 @@ export class MessageService {
 
       //create values
       const message = messageRepo.create({
+        read: false,
         reply,
         senderMessage,
         text,
@@ -155,9 +156,10 @@ export class MessageService {
   }
 
   //find message
-  private async findMessage({
-    chatId,
-  }: MessageInput): Promise<MessageData[] | string> {
+  private async findMessage(
+    { chatId }: MessageInput,
+    id: number
+  ): Promise<MessageData[] | string> {
     try {
       //search table
       const messageRepo = AppDataSource.getRepository(MessageModel);
@@ -169,13 +171,40 @@ export class MessageService {
         .leftJoinAndSelect("message.chatId", "chatId")
         .leftJoinAndSelect("message.reply", "reply")
         .leftJoinAndSelect("reply.senderMessage", "senderMessage.id")
+        .limit(100)
         .getMany();
 
       if (!findMessage) {
         return invalid;
       }
 
-      return findMessage?.sort(
+      await Promise.all(
+        findMessage.map(async (message: any) => {
+          if (message.senderMessage?.id !== id)
+            await messageRepo
+              .createQueryBuilder()
+              .update(MessageModel)
+              .set({ read: true })
+              .where("message.id = :id", { id: message.id })
+              .execute();
+        })
+      );
+
+      const findMessages = await messageRepo
+        .createQueryBuilder("message")
+        .where("message.chatId = :chatId", { chatId })
+        .leftJoinAndSelect("message.senderMessage", "senderMessage")
+        .leftJoinAndSelect("message.chatId", "chatId")
+        .leftJoinAndSelect("message.reply", "reply")
+        .leftJoinAndSelect("reply.senderMessage", "senderMessage.id")
+        .limit(100)
+        .getMany();
+
+      if (!findMessages) {
+        return invalid;
+      }
+
+      return findMessages?.sort(
         (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
       ) as undefined as MessageData[];
     } catch (e) {
@@ -250,7 +279,7 @@ export class MessageService {
 
       if (message == success && id == input.senderMessage) {
         //Add function message
-        const data = await this.findMessage(input);
+        const data = await this.findMessage(input, id);
 
         if (data == invalid) {
           return { status: invalid, code: 404, message: "Message not delete" };

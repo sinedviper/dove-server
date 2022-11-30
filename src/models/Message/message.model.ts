@@ -29,8 +29,14 @@ export class MessageModel extends BaseEntity {
   @Column("text")
   public text!: String;
 
+  @Field(() => Boolean)
+  @Column()
+  public read!: Boolean;
+
   @Field(() => ChatModel)
-  @ManyToOne(() => ChatModel, (chat: ChatModel) => chat.id)
+  @ManyToOne(() => ChatModel, (chat: ChatModel) => chat.id, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "chatId" })
   public chatId!: Number;
 

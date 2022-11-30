@@ -22,12 +22,16 @@ export class ChatModel extends BaseEntity {
   public id!: number;
 
   @Field(() => UserModel)
-  @ManyToOne(() => UserModel, (user: UserModel) => user.id)
+  @ManyToOne(() => UserModel, (user: UserModel) => user.id, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "sender" })
   public sender!: Number;
 
   @Field(() => UserModel)
-  @ManyToOne(() => UserModel, (user: UserModel) => user.id)
+  @ManyToOne(() => UserModel, (user: UserModel) => user.id, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "recipient" })
   public recipient!: Number;
 
