@@ -20,6 +20,9 @@ export class MessageData {
   @Field(() => MessageReply, { nullable: true })
   public reply?: number;
 
+  @Field(() => Date)
+  public dateUpdate!: Date;
+
   @Field(() => Boolean)
   public read!: boolean;
 
@@ -55,6 +58,21 @@ export class MessageResponse {
 
   @Field(() => [MessageData], { nullable: true })
   public data?: MessageData[];
+
+  @Field(() => String, { nullable: true })
+  public message?: string;
+}
+
+@ObjectType()
+export class MessageResponseHave {
+  @Field(() => String)
+  public status!: string;
+
+  @Field(() => Number)
+  public code!: number;
+
+  @Field(() => Date, { nullable: true })
+  public data?: Date;
 
   @Field(() => String, { nullable: true })
   public message?: string;

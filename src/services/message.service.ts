@@ -128,7 +128,7 @@ export class MessageService {
       await messageRepo
         .createQueryBuilder()
         .update(MessageModel)
-        .set({ text })
+        .set({ text, dateUpdate: new Date() })
         .where("message.id = :id", { id })
         .execute();
 
@@ -209,6 +209,88 @@ export class MessageService {
       ) as undefined as MessageData[];
     } catch (e) {
       console.log(e);
+      return invalid;
+    }
+  }
+  //have message
+  private async haveMessageData({
+    chatId,
+    id: messgaeId,
+  }: MessageInput): Promise<string | Date> {
+    try {
+      //search table
+      const messageRepo = AppDataSource.getRepository(MessageModel);
+
+      const message = await messageRepo
+        .createQueryBuilder("message")
+        .where("message.id = :messgaeId", { messgaeId })
+        .getOne();
+
+      //find values
+      const findMessage = await messageRepo
+        .createQueryBuilder("message")
+        .where("message.chatId = :chatId", { chatId })
+        .andWhere("message.createdAt < :data", { data: message.createdAt })
+        .leftJoinAndSelect("message.senderMessage", "senderMessage")
+        .leftJoinAndSelect("message.chatId", "chatId")
+        .leftJoinAndSelect("message.reply", "reply")
+        .leftJoinAndSelect("reply.senderMessage", "senderMessage.id")
+        .getOne();
+
+      if (findMessage === null) {
+        return invalid;
+      }
+
+      return findMessage.createdAt;
+    } catch (e) {
+      console.log(e);
+      return invalid;
+    }
+  }
+
+  //find message
+  private async findMessageDate({
+    chatId,
+    dataLastMessage,
+  }: MessageInput): Promise<MessageData[] | string> {
+    try {
+      const day = 24 * 60 * 60 * 1000;
+      const dataUpdate = new Date(
+        dataLastMessage.setTime(dataLastMessage.getTime() - day)
+      );
+      const dataSecond = new Date(
+        dataUpdate.getFullYear(),
+        dataUpdate.getMonth(),
+        dataUpdate.getDate()
+      );
+      //search table
+      const messageRepo = AppDataSource.getRepository(MessageModel);
+      console.log(dataSecond);
+      //find values
+      const findMessage = await messageRepo
+        .createQueryBuilder("message")
+        .where("message.chatId = :chatId", { chatId })
+        .andWhere("message.createdAt BETWEEN :dataSecond AND :dataFirst", {
+          dataFirst: dataLastMessage,
+          dataSecond,
+        })
+        .leftJoinAndSelect("message.senderMessage", "senderMessage")
+        .leftJoinAndSelect("message.chatId", "chatId")
+        .leftJoinAndSelect("message.reply", "reply")
+        .leftJoinAndSelect("reply.senderMessage", "senderMessage.id")
+        .getMany();
+
+      console.log(findMessage);
+      if (!findMessage) {
+        return invalid;
+      }
+
+      return findMessage?.sort(
+        (a: any, b: any) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
+      ) as undefined as MessageData[];
+    } catch (e) {
+      console.log(e);
+      return invalid;
     }
   }
   //-------------------------------------------------Public function------------------------------------------------------------
@@ -269,7 +351,7 @@ export class MessageService {
     }
   }
 
-  //Find chats
+  //Find message
   public async findMessages(
     input: MessageInput,
     { req, res, autorization }: IContext
@@ -316,6 +398,68 @@ export class MessageService {
           code: 200,
           data: message,
           message: "Message update",
+        };
+      }
+
+      if (message == invalid) {
+        return { status: invalid, code: 401, message: "Unauthorized" };
+      }
+
+      return { status: success, code: 406, message: "Not Acceptable" };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
+    }
+  }
+
+  //Find message
+  public async haveMessage(
+    input: MessageInput,
+    { req, res, autorization }: IContext
+  ) {
+    try {
+      const { message, id } = await autorization(req, res);
+
+      if (message == success && id == input.senderMessage) {
+        //Add function message
+        const data = await this.haveMessageData(input);
+
+        if (data == invalid) {
+          return { status: success, code: 200, data: null };
+        }
+
+        return { status: success, code: 200, data };
+      }
+
+      if (message == invalid) {
+        return { status: invalid, code: 401, message: "Unauthorized" };
+      }
+
+      return { status: success, code: 406, message: "Not Acceptable" };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
+    }
+  }
+
+  //find date message
+  public async findDateMessage(
+    input: MessageInput,
+    { req, res, autorization }: IContext
+  ) {
+    try {
+      const { message, id } = await autorization(req, res);
+      if (message == success && id == input.senderMessage) {
+        //Update function message
+        const message = await this.findMessageDate(input);
+
+        if (message == invalid) {
+          return { status: invalid, code: 404, message: "Message not have" };
+        }
+
+        return {
+          status: success,
+          code: 200,
+          data: message,
+          message: "Message have",
         };
       }
 

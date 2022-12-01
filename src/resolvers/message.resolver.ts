@@ -1,6 +1,10 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
-import { MessageResponse, MessageInput } from "../models/Message";
+import {
+  MessageResponse,
+  MessageInput,
+  MessageResponseHave,
+} from "../models/Message";
 import { MessageService } from "../services";
 import { IContext } from "../utils/interfaces";
 
@@ -16,6 +20,22 @@ export class ResolverMessage {
     @Ctx() ctx: IContext
   ) {
     return await this.messageService.findMessages(message, ctx);
+  }
+
+  @Query(() => MessageResponseHave)
+  async haveMessageFind(
+    @Arg("message") message: MessageInput,
+    @Ctx() ctx: IContext
+  ) {
+    return await this.messageService.haveMessage(message, ctx);
+  }
+
+  @Query(() => MessageResponse)
+  async findMessageDate(
+    @Arg("message") message: MessageInput,
+    @Ctx() ctx: IContext
+  ) {
+    return await this.messageService.findDateMessage(message, ctx);
   }
 
   @Mutation(() => MessageResponse)

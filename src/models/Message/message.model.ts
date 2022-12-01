@@ -29,9 +29,13 @@ export class MessageModel extends BaseEntity {
   @Column("text")
   public text!: String;
 
-  @Field(() => Boolean, { nullable: true })
+  @Field(() => Boolean)
   @Column()
-  public read?: Boolean;
+  public read!: Boolean;
+
+  @Field(() => Date)
+  @CreateDateColumn()
+  public dateUpdate!: Date;
 
   @Field(() => ChatModel)
   @ManyToOne(() => ChatModel, (chat: ChatModel) => chat.id, {
@@ -43,6 +47,7 @@ export class MessageModel extends BaseEntity {
   @Field(() => MessageModel, { nullable: true })
   @ManyToOne(() => MessageModel, (reply: MessageModel) => reply.id, {
     nullable: true,
+    onDelete: "CASCADE",
   })
   @JoinColumn({ name: "reply" })
   public reply?: Number;
