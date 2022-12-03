@@ -260,7 +260,7 @@ export class ChatService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == success && id == input.sender) {
+      if (message == success) {
         //Add function chat
         const data = await this.findByIdAndAdd(input);
         if (data == invalid) {

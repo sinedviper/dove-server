@@ -25,18 +25,7 @@ export class UploadService {
       });
       await uploadRepo.save(upload);
 
-      const findUploads = await uploadRepo
-        .createQueryBuilder("upload")
-        .where("upload.userUploadId = :userUploadId", { userUploadId })
-        .getMany();
-
-      if (!findUploads) {
-        return invalid;
-      }
-      //give contacts
-      return findUploads.sort(
-        (a: any, b: any) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
-      ) as unknown as UploadModel[];
+      return success;
     } catch (e) {
       console.log(e);
       return invalid;
@@ -45,8 +34,7 @@ export class UploadService {
 
   //Delete contact to user
   private async DeleteUploadFile(
-    fileId: number,
-    userUploadId: number
+    fileId: number
   ): Promise<UploadData[] | string> {
     try {
       //search table
@@ -67,19 +55,7 @@ export class UploadService {
         .where("upload.id = :fileId", { fileId })
         .execute();
 
-      const findUploads = await uploadRepo
-        .createQueryBuilder("upload")
-        .where("upload.userUploadId = :userUploadId", { userUploadId })
-        .getMany();
-
-      if (!findUploads) {
-        return invalid;
-      }
-
-      //give upload
-      return findUploads.sort(
-        (a: any, b: any) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
-      ) as unknown as UploadData[];
+      return success;
     } catch (e) {
       console.log(e);
       return invalid;
@@ -147,8 +123,13 @@ export class UploadService {
 
       if (message == success) {
         //Add function contact
-        const data = await this.AddUploadFile(file, id);
+        const add = await this.AddUploadFile(file, id);
 
+        if (add == invalid) {
+          return { status: invalid, code: 404, message: "Can't add" };
+        }
+
+        const data = await this.findUpload(id);
         if (data == invalid) {
           return { status: invalid, code: 404, message: "Can't add" };
         }
@@ -181,8 +162,13 @@ export class UploadService {
 
       if (message == success) {
         //Delete fucntion contact
-        const data = await this.DeleteUploadFile(fileId, id);
+        const rem = await this.DeleteUploadFile(fileId);
 
+        if (rem == invalid) {
+          return { status: invalid, code: 404, message: "Can't delete" };
+        }
+
+        const data = await this.findUpload(id);
         if (data == invalid) {
           return { status: invalid, code: 404, message: "Can't delete" };
         }

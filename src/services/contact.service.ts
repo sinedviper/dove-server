@@ -1,3 +1,4 @@
+import { UploadModel } from "./../models/Upload/upload.model";
 import * as dotenv from "dotenv";
 
 import { invalid, success } from "../utils/constants";
@@ -34,19 +35,7 @@ export class ContactService {
       });
       await contactRepo.save(contact);
 
-      const findContacts = await contactRepo
-        .createQueryBuilder("contact")
-        .where("contact.userId = :userId", { userId })
-        .leftJoinAndSelect("contact.contactId", "contactId")
-        .getMany();
-
-      if (!findContacts) {
-        return invalid;
-      }
-      //give contacts
-      return findContacts.map((obj) => {
-        return obj.contactId as unknown as UserData;
-      }) as UserData[];
+      return success;
     } catch (e) {
       console.log(e);
       return invalid;
@@ -79,19 +68,7 @@ export class ContactService {
         .andWhere("contact.contactId = :contactId", { contactId })
         .execute();
 
-      const findContacts = await contactRepo
-        .createQueryBuilder("contact")
-        .where("contact.userId = :userId", { userId })
-        .leftJoinAndSelect("contact.contactId", "contactId")
-        .getMany();
-
-      if (!findContacts) {
-        return invalid;
-      }
-      //give contacts
-      return findContacts.map((obj) => {
-        return obj.contactId as unknown as UserData;
-      }) as UserData[];
+      return success;
     } catch (e) {
       console.log(e);
       return invalid;
@@ -113,8 +90,29 @@ export class ContactService {
       if (!findContact) {
         return invalid;
       }
+
+      const uploadRepo = AppDataSource.getRepository(UploadModel);
+
+      let upload = await Promise.all(
+        findContact.map(async (contact: any) => {
+          let img = await uploadRepo
+            .createQueryBuilder("upload")
+            .where("upload.userUploadId = :id", { id: contact.contactId.id })
+            .getMany();
+
+          const image = img.sort(
+            (a: any, b: any) =>
+              Date.parse(b.createdAt) - Date.parse(a.createdAt)
+          )[0];
+
+          if (image) contact.contactId.file = image.file;
+
+          return contact;
+        })
+      );
+
       //give contacts
-      return findContact.map((obj) => {
+      return upload.map((obj: any) => {
         return obj.contactId as unknown as UserData;
       }) as UserData[];
     } catch (e) {
@@ -131,9 +129,15 @@ export class ContactService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == success && id == input.userId) {
+      if (message == success) {
         //Add function contact
-        const data = await this.findByIdAndAdd(input);
+        const add = await this.findByIdAndAdd(input);
+
+        if (add == invalid) {
+          return { status: invalid, code: 404, message: "Can't add" };
+        }
+
+        const data = await this.findContactUser(id);
 
         if (data == invalid) {
           return { status: invalid, code: 404, message: "Can't add" };
@@ -165,10 +169,15 @@ export class ContactService {
     try {
       const { message, id } = await autorization(req, res);
 
-      if (message == success && id == input.userId) {
+      if (message == success) {
         //Delete fucntion contact
-        const data = await this.findByIdAndDelete(input);
+        const rem = await this.findByIdAndDelete(input);
 
+        if (rem == invalid) {
+          return { status: invalid, code: 404, message: "Can't delete" };
+        }
+
+        const data = await this.findContactUser(id);
         if (data == invalid) {
           return { status: invalid, code: 404, message: "Can't delete" };
         }

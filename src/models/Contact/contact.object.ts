@@ -1,7 +1,7 @@
 import { ObjectType, Field, ID } from "type-graphql";
 
 @ObjectType()
-class ContactData {
+export class ContactData {
   @Field(() => ID)
   public id!: number;
 
@@ -19,6 +19,9 @@ class ContactData {
 
   @Field(() => Date)
   public online!: Date;
+
+  @Field(() => String, { nullable: true })
+  public file?: String;
 
   @Field(() => String, { nullable: true })
   public bio?: string;

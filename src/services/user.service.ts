@@ -1,9 +1,12 @@
+import fs from "fs";
+import path from "path";
 import * as dotenv from "dotenv";
 import * as bcrypt from "bcrypt";
 
 import { IContext } from "../utils/interfaces";
 import { AppDataSource, signJwt } from "../utils/helpers";
 import { invalid, success } from "../utils/constants";
+import { UploadModel } from "../models/Upload";
 import {
   LoginInput,
   UserModel,
@@ -36,7 +39,6 @@ export class UserService {
   }
 
   private async findBySearchUsers(
-    id: number,
     username: string
   ): Promise<UserData[] | null> {
     try {
@@ -48,11 +50,30 @@ export class UserService {
       const users = await userRepo
         .createQueryBuilder("users")
         .where("users.username LIKE :username", { username: `%${username}%` })
-        //.andWhere("users.id != :id", { id })
         .limit(10)
         .getMany();
 
-      return users as unknown as UserData[];
+      const uploadRepo = AppDataSource.getRepository(UploadModel);
+
+      let upload = await Promise.all(
+        users.map(async (user: any) => {
+          let img = await uploadRepo
+            .createQueryBuilder("upload")
+            .where("upload.userUploadId = :id", { id: user.id })
+            .getMany();
+
+          const image = img.sort(
+            (a: any, b: any) =>
+              Date.parse(b.createdAt) - Date.parse(a.createdAt)
+          )[0];
+
+          if (image) user.file = image.file;
+
+          return user;
+        })
+      );
+
+      return upload as unknown as UserData[];
     } catch (e) {
       console.log(e);
     }
@@ -65,10 +86,22 @@ export class UserService {
       }
       const userRepo = AppDataSource.getRepository(UserModel);
 
-      const user = await userRepo
+      let user: any = await userRepo
         .createQueryBuilder("users")
         .where("users.username = :username", { username })
         .getOne();
+
+      const uploadRepo = AppDataSource.getRepository(UploadModel);
+      let img = await uploadRepo
+        .createQueryBuilder("upload")
+        .where("upload.userUploadId = :id", { id: user.id })
+        .getMany();
+
+      const image = img.sort(
+        (a: any, b: any) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+      )[0];
+
+      if (image) user.file = image.file;
 
       return user as unknown as UserData;
     } catch (e) {
@@ -99,6 +132,23 @@ export class UserService {
   private async findByIdAndDelete(id: number): Promise<UserData | string> {
     try {
       const userRepo = AppDataSource.getRepository(UserModel);
+
+      const uploadRepo = AppDataSource.getRepository(UploadModel);
+
+      const upload = await uploadRepo
+        .createQueryBuilder("upload")
+        .where("upload.userUploadId = :id", { id })
+        .getMany();
+
+      await Promise.all(
+        upload.map((img) => {
+          const filePath = path.dirname("src") + "/src/images/" + img.file;
+          fs.unlink(filePath, (err) => {
+            if (err) console.log(err.message);
+          });
+          uploadRepo.delete({ id: Number(img?.id) });
+        })
+      );
 
       await userRepo.delete({ id });
 
@@ -558,11 +608,11 @@ export class UserService {
   ) {
     try {
       //Check have user
-      const { message, id } = await autorization(req, res);
+      const { message } = await autorization(req, res);
 
       //and if have we return it
-      if (message == success && id === Number(input.userId)) {
-        const data = await this.findBySearchUsers(id, input.username);
+      if (message == success) {
+        const data = await this.findBySearchUsers(input.username);
 
         return {
           status: success,
@@ -588,9 +638,9 @@ export class UserService {
   ) {
     try {
       //Check have user
-      const { message, id } = await autorization(req, res);
+      const { message } = await autorization(req, res);
       //and if have we return it
-      if (message == success && id === Number(input.userId)) {
+      if (message == success) {
         const data = await this.findBySearchUser(input.username);
 
         return {

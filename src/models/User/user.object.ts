@@ -23,6 +23,9 @@ export class UserData {
   @Field(() => String, { nullable: true })
   public bio?: string;
 
+  @Field(() => String, { nullable: true })
+  public file?: string;
+
   @Field(() => Boolean)
   public theme!: boolean;
 

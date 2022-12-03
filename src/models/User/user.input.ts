@@ -65,9 +65,6 @@ export class LoginInput {
 
 @InputType()
 export class UserSearchInput {
-  @Field(() => Number)
-  public userId!: number;
-
   @Field(() => String)
   public username!: string;
 }
