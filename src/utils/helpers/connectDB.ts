@@ -11,11 +11,11 @@ dotenv.config();
 
 export const AppDataSource = new DataSource({
   type: "mysql",
-  host: process.env.HOST,
-  port: Number(process.env.PORT_DATABASE),
-  username: process.env.ADMIN,
-  password: process.env.PASSWORD,
-  database: process.env.DATABASE,
+  host: process.env.MYSQLHOST,
+  port: Number(process.env.MYSQLPORT),
+  username: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
   synchronize: true,
   charset: "utf8mb4",
   entities: [UserModel, ContactModel, ChatModel, MessageModel, UploadModel],
