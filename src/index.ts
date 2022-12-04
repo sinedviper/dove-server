@@ -84,6 +84,9 @@ dotenv.config();
 
   app.use(
     "/graphql",
+    cors<cors.CorsRequest>({
+      origin: "https://dove-client.vercel.app",
+    }),
     bodyParser.json(),
     expressMiddleware(server, {
       context: async ({ req, res }) => ({ req, res, autorization }),
