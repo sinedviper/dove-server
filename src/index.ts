@@ -53,6 +53,7 @@ dotenv.config();
   const upload = multer({ storage });
 
   app.use(
+    "/",
     cors<cors.CorsRequest>({
       origin: "*",
     })
