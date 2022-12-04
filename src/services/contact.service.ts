@@ -1,9 +1,9 @@
-import { UploadModel } from "./../models/Upload/upload.model";
 import * as dotenv from "dotenv";
 
 import { invalid, success } from "../utils/constants";
 import { IContext } from "../utils/interfaces";
 import { AppDataSource } from "../utils/helpers";
+import { UploadModel } from "../models/Upload";
 import { ContactInput, ContactModel } from "../models/Contact";
 import { UserData } from "../models/User";
 
