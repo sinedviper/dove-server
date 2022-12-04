@@ -1,5 +1,5 @@
 {
-  "name": "telegram-server",
+  "name": "dove-server",
   "version": "1.0.0",
   "description": "Server for Dove",
   "main": "index.js",

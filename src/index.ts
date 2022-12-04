@@ -87,11 +87,16 @@ dotenv.config();
   );
 
   await new Promise<void>((res) =>
-    httpServer.listen({ port: Number(process.env.PORT) }, res)
+    httpServer.listen(
+      { port: Number(process.env.PORT) ? Number(process.env.PORT) : 3001 },
+      res
+    )
   )
     .then(() => {
       console.log(
-        `Server ready at http://localhost:${Number(process.env.PORT)}/graphql`
+        `Server ready at http://localhost:${
+          Number(process.env.PORT) ? Number(process.env.PORT) : 3001
+        }/graphql`
       );
     })
     .catch((err) => {
