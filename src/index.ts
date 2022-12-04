@@ -85,6 +85,9 @@ dotenv.config();
 
   app.use(
     "/graphql",
+    cors<cors.CorsRequest>({
+      origin: "*",
+    }),
     bodyParser.json(),
     expressMiddleware(server, {
       context: async ({ req, res }) => ({ req, res, autorization }),
