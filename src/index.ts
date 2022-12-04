@@ -52,11 +52,6 @@ dotenv.config();
 
   const upload = multer({ storage });
 
-  app.use(
-    cors<cors.CorsRequest>({
-      origin: "https://dove-client-gdrl4atns-sinedviper.vercel.app",
-    })
-  );
   app.use("/images", express.static(__dirname + "/images/"));
   app.post(
     "/upload",
