@@ -52,18 +52,7 @@ dotenv.config();
 
   const upload = multer({ storage });
 
-  app.use("/", cors<cors.CorsRequest>());
-  app.use(function (req, res, next) {
-    res.header(
-      "Access-Control-Allow-Origin",
-      "https://dove-client.vercel.app/"
-    );
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept"
-    );
-    next();
-  });
+  app.use(cors());
   app.use("/images", express.static(__dirname + "/images/"));
   app.post(
     "/upload",
