@@ -55,8 +55,6 @@ dotenv.config();
   app.use(
     cors<cors.CorsRequest>({
       origin: "*",
-      credentials: true,
-      optionsSuccessStatus: 200,
     })
   );
   app.use("/images", express.static(__dirname + "/images/"));
@@ -86,11 +84,6 @@ dotenv.config();
 
   app.use(
     "/graphql",
-    cors<cors.CorsRequest>({
-      origin: "*",
-      credentials: true,
-      optionsSuccessStatus: 200,
-    }),
     bodyParser.json(),
     expressMiddleware(server, {
       context: async ({ req, res }) => ({ req, res, autorization }),
