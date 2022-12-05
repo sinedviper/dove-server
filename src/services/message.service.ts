@@ -390,7 +390,7 @@ export class MessageService {
         const data = await this.findMessage(input, id);
 
         if (data == invalid) {
-          return { status: invalid, code: 404, message: "Message not delete" };
+          return { status: invalid, code: 404, message: "Message not find" };
         }
         return { status: success, code: 200, data };
       }

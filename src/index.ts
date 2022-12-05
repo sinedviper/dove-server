@@ -52,7 +52,7 @@ dotenv.config();
 
   const upload = multer({ storage });
 
-  app.use(cors());
+  app.use(cors<cors.CorsRequest>({ origin: "https://dove-client.vercel.app" }));
   app.use("/images", express.static(__dirname + "/images/"));
   app.post(
     "/upload",
