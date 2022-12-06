@@ -25,6 +25,8 @@ import { invalid } from "./utils/constants";
 
 dotenv.config();
 
+export const dirname = __dirname;
+
 (async (): Promise<void> => {
   const { typeDefs, resolvers } = await buildTypeDefsAndResolvers({
     resolvers: [
@@ -52,7 +54,11 @@ dotenv.config();
 
   const upload = multer({ storage });
 
-  app.use(cors<cors.CorsRequest>({ origin: "https://dove-client.vercel.app" }));
+  app.use(
+    cors<cors.CorsRequest>({
+      origin: ["https://dove-client.vercel.app", "http://localhost:3000"],
+    })
+  );
   app.use("/images", express.static(__dirname + "/images/"));
   app.post(
     "/upload",

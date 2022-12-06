@@ -1,10 +1,10 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import fs from "fs";
-import path from "path";
 
 import { UploadResponse, UploadResponseUser } from "../models/Upload";
 import { IContext } from "../utils/interfaces";
 import { UploadService } from "../services";
+import { dirname } from "../index";
 
 @Resolver(() => UploadResponse)
 export class ResolverUpload {
@@ -28,7 +28,7 @@ export class ResolverUpload {
     @Arg("idPhoto") idPhoto: number,
     @Ctx() ctx: IContext
   ) {
-    const filePath = path.dirname("src") + "/src/images/" + file;
+    const filePath = dirname + "/images/" + file;
     fs.unlink(filePath, (err) => {
       if (err) console.log(err.message);
     });
