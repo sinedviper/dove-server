@@ -1,3 +1,4 @@
+import { UserLogin } from "./../models/User/user.object";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
 import {
@@ -41,6 +42,11 @@ export class ResolverUser {
   @Mutation(() => UserResponse)
   async signupUser(@Arg("input") input: SignUpInput) {
     return await this.userService.signUpUser(input);
+  }
+
+  @Mutation(() => LoginResponse)
+  async confirmationUser(@Arg("token") token: string) {
+    return await this.userService.confirmationAccount(token);
   }
 
   @Mutation(() => LoginResponse)

@@ -41,6 +41,9 @@ export class UserData {
 
 @ObjectType()
 export class UserLogin extends UserData {
+  @Field(() => Boolean, { nullable: true })
+  public confirmation?: boolean;
+
   @Field(() => String)
   public password!: string;
 }

@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import * as dotenv from "dotenv";
 import * as bcrypt from "bcrypt";
+import { CourierClient } from "@trycourier/courier";
 
 import { IContext } from "../utils/interfaces";
 import { AppDataSource, signJwt } from "../utils/helpers";
@@ -17,6 +18,7 @@ import {
   UpdateInputOnline,
   UserSearchInput,
 } from "../models/User";
+import { autorizationConfirmation } from "../middleware";
 
 dotenv.config();
 
@@ -151,6 +153,32 @@ export class UserService {
       );
 
       await userRepo.delete({ id });
+
+      return success;
+    } catch (e) {
+      console.log(e);
+      return invalid;
+    }
+  }
+
+  private async findByIdAndUpdateConfirmation(id: number): Promise<string> {
+    try {
+      const userRepo = AppDataSource.getRepository(UserModel);
+      if (!userRepo) {
+        return invalid;
+      }
+      const user = await userRepo.findOne({ where: { id } });
+
+      if (!user) {
+        return invalid;
+      }
+
+      await userRepo
+        .createQueryBuilder()
+        .update(UserModel)
+        .set({ confirmation: true })
+        .where("id = :id", { id })
+        .execute();
 
       return success;
     } catch (e) {
@@ -365,6 +393,7 @@ export class UserService {
         email,
         name,
         surname,
+        confirmation: false,
         bio: "",
         online: new Date(),
         theme: false,
@@ -374,6 +403,27 @@ export class UserService {
 
       //Save user in database
       await userRepo.save(user);
+
+      const courier = CourierClient({
+        authorizationToken: process.env.TOKENMAIL,
+      });
+
+      const code = this.signTokens(user);
+
+      await courier.send({
+        message: {
+          content: {
+            title: "Welcome to Dove!",
+            body: "Please verify your Dove account, use this code\n\n {{code}}  \n\nand follow the link: https://dove-client.vercel.app/confirmation",
+          },
+          data: {
+            code,
+          },
+          to: {
+            email,
+          },
+        },
+      });
 
       return {
         status: success,
@@ -423,6 +473,23 @@ export class UserService {
         };
       }
 
+      if (user.confirmation === undefined) {
+        return {
+          status: invalid,
+          code: 400,
+          message: "You can use your account",
+        };
+      }
+
+      //verification mail
+      if (user.confirmation === false) {
+        return {
+          status: invalid,
+          code: 400,
+          message: "Please confirmation your account",
+        };
+      }
+
       // 3. Sign JWT Tokens
       const access_token = this.signTokens(user);
 
@@ -458,6 +525,41 @@ export class UserService {
           code: 200,
           data,
         };
+      }
+
+      if (message == invalid) {
+        return { status: invalid, code: 401, message: "Unauthorized" };
+      }
+
+      return { status: success, code: 406, message: "Not Acceptable" };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
+    }
+  }
+  //confirmation account
+  public async confirmationAccount(access_token: string) {
+    try {
+      //Check have user
+      const { message, id } = await autorizationConfirmation(access_token);
+      //and if have we return it
+      if (message == success) {
+        const data = await this.findByIdAndUpdateConfirmation(id);
+
+        if (data === invalid) {
+          return {
+            status: invalid,
+            code: 400,
+            message: "Can't confirmation your account",
+          };
+        }
+
+        if (data === success) {
+          return {
+            status: success,
+            code: 200,
+            access_token,
+          };
+        }
       }
 
       if (message == invalid) {

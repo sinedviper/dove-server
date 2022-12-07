@@ -18,9 +18,12 @@ import {
   ResolverMessage,
   ResolverUpload,
 } from "./resolvers";
-import { AppDataSource, storage } from "./utils/helpers";
+import {
+  AppDataSource,
+  checkUpdateAndFormatImage,
+  storage,
+} from "./utils/helpers";
 import { autorization } from "./middleware";
-import { UploadService } from "./services";
 import { invalid } from "./utils/constants";
 
 dotenv.config();
@@ -50,13 +53,11 @@ export const dirname = __dirname;
 
   await server.start();
 
-  const uploadService = new UploadService();
-
   const upload = multer({ storage });
 
   app.use(
     cors<cors.CorsRequest>({
-      origin: ["https://dove-client.vercel.app", "http://localhost:3000"],
+      origin: ["https://dove-client.vercel.app"],
     })
   );
   app.use("/images", express.static(__dirname + "/images/"));
@@ -75,12 +76,11 @@ export const dirname = __dirname;
     },
     upload.single("image"),
     async (req, res) =>
-      res.json(
-        await uploadService.addFile(req.file.originalname, {
-          req,
-          res,
-          autorization,
-        })
+      await checkUpdateAndFormatImage(
+        req,
+        res,
+        autorization,
+        req.file.originalname
       )
   );
 

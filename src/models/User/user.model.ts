@@ -1,4 +1,3 @@
-import { UploadModel } from "./../Upload/upload.model";
 import { Field, ID, ObjectType } from "type-graphql";
 import {
   Column,
@@ -56,6 +55,10 @@ export class UserModel extends BaseEntity {
   @Field()
   @Column()
   public password!: string;
+
+  @Field(() => Boolean, { nullable: true })
+  @Column()
+  public confirmation?: boolean;
 
   @Field()
   @CreateDateColumn()
