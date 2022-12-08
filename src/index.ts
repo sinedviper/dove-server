@@ -57,7 +57,7 @@ export const dirname = __dirname;
 
   app.use(
     cors<cors.CorsRequest>({
-      origin: ["https://dove-client.vercel.app"],
+      origin: process.env.CLIENTLINK,
     })
   );
   app.use("/images", express.static(__dirname + "/images/"));

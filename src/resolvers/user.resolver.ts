@@ -50,6 +50,11 @@ export class ResolverUser {
   }
 
   @Mutation(() => LoginResponse)
+  async sendReport(@Arg("text") text: string, @Ctx() ctx: IContext) {
+    return await this.userService.sendReport(text, ctx);
+  }
+
+  @Mutation(() => LoginResponse)
   async loginUser(@Arg("input") loginInput: LoginInput) {
     return await this.userService.loginUser(loginInput);
   }

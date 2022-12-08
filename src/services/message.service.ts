@@ -127,6 +127,10 @@ export class MessageService {
         .leftJoinAndSelect("reply.senderMessage", "senderMessage.id")
         .getOne();
 
+      if (!findMessagess) {
+        return null;
+      }
+
       const dataFirst = findMessagess.createdAt;
       const dataSecond = new Date(
         dataFirst.getFullYear(),
@@ -151,19 +155,18 @@ export class MessageService {
         .getMany();
 
       if (!findMessage) {
-        return invalid;
+        return null;
       }
 
       await Promise.all(
         findMessage.map(async (message: any) => {
           if (message.senderMessage?.id !== id)
-            if (message.read === false)
-              await messageRepo
-                .createQueryBuilder()
-                .update(MessageModel)
-                .set({ read: true })
-                .where("message.id = :id", { id: message.id })
-                .execute();
+            await messageRepo
+              .createQueryBuilder()
+              .update(MessageModel)
+              .set({ read: true })
+              .where("message.id = :id", { id: message.id })
+              .execute();
         })
       );
 
@@ -186,7 +189,7 @@ export class MessageService {
         .getMany();
 
       if (!findMessages) {
-        return invalid;
+        return null;
       }
 
       return findMessages?.sort(
@@ -392,6 +395,7 @@ export class MessageService {
         if (data == invalid) {
           return { status: invalid, code: 404, message: "Message not find" };
         }
+
         return { status: success, code: 200, data };
       }
 

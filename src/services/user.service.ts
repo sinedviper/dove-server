@@ -577,10 +577,6 @@ export class UserService {
     try {
       const { message, id } = await autorization(req, res);
       if (message == success) {
-        // Logout user
-        res.cookie("access_token", "", { maxAge: -1 });
-        res.cookie("refresh_token", "", { maxAge: -1 });
-
         //Delete user
         this.findByIdAndDelete(id);
 
@@ -749,6 +745,62 @@ export class UserService {
           status: success,
           code: 200,
           data,
+        };
+      }
+
+      if (message == invalid) {
+        return { status: invalid, code: 401, message: "Unauthorized" };
+      }
+
+      return { status: success, code: 406, message: "Not Acceptable" };
+    } catch (e) {
+      return { status: invalid, code: 500, message: e.message };
+    }
+  }
+
+  //Send bugs report
+  public async sendReport(text: string, { req, res, autorization }: IContext) {
+    try {
+      //Check have user
+      const { message, id } = await autorization(req, res);
+
+      //and if have we return it
+      if (message == success) {
+        const data: any = await this.findById(id);
+
+        if (data === invalid) {
+          return {
+            status: invalid,
+            code: 400,
+            message: "I can't send",
+          };
+        }
+
+        const courier = CourierClient({
+          authorizationToken: process.env.TOKENMAIL,
+        });
+
+        await courier.send({
+          message: {
+            content: {
+              title: "Welcome to Dove!",
+              body: "Username: {{username}}\n Email: {{email}}\n {{text}}",
+            },
+            data: {
+              text,
+              username: data?.username,
+              email: data?.email,
+            },
+            to: {
+              email: "sinedviper@gmail.com",
+            },
+          },
+        });
+
+        return {
+          status: success,
+          code: 200,
+          message: "Success",
         };
       }
 
