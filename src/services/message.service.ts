@@ -144,7 +144,11 @@ export class MessageService {
         .createQueryBuilder("message")
         .where("message.chatId = :chatId", { chatId })
         .andWhere("message.createdAt BETWEEN :dataSecond AND :dataFirst", {
-          dataFirst: new Date(findMessagess.createdAt),
+          dataFirst: new Date(
+            findMessagess.createdAt.setTime(
+              findMessagess.createdAt.getTime() + 1000
+            )
+          ),
           dataSecond,
         })
         .orderBy("message.createdAt", "DESC")

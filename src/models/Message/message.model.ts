@@ -21,7 +21,9 @@ export class MessageModel extends BaseEntity {
   public id!: number;
 
   @Field(() => UserModel)
-  @ManyToOne(() => UserModel, (user: UserModel) => user.id)
+  @ManyToOne(() => UserModel, (user: UserModel) => user.id, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "senderMessage" })
   public senderMessage!: Number;
 

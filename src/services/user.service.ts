@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 import * as dotenv from "dotenv";
 import * as bcrypt from "bcrypt";
 import { CourierClient } from "@trycourier/courier";
@@ -19,12 +18,14 @@ import {
   UserSearchInput,
 } from "../models/User";
 import { autorizationConfirmation } from "../middleware";
+import { dirname } from "../";
 
 dotenv.config();
 
 export class UserService {
   // Cookie Options
   private accessTokenExpiresIn = Number(process.env.ACCESS_TOKEN_EXPIRES_IN);
+  private compareTokenExpiresIn = Number(process.env.COMPARE_TOKEN_EXPIRES_IN);
 
   private async findByEmail(email: string): Promise<UserLogin | null> {
     try {
@@ -131,7 +132,7 @@ export class UserService {
     }
   }
 
-  private async findByIdAndDelete(id: number): Promise<UserData | string> {
+  private async findByIdAndDelete(id: number): Promise<string> {
     try {
       const userRepo = AppDataSource.getRepository(UserModel);
 
@@ -144,7 +145,7 @@ export class UserService {
 
       await Promise.all(
         upload.map((img) => {
-          const filePath = path.dirname("src") + "/src/images/" + img.file;
+          const filePath = dirname + "/images/" + img.file;
           fs.unlink(filePath, (err) => {
             if (err) console.log(err.message);
           });
@@ -317,6 +318,25 @@ export class UserService {
       return invalid;
     }
   }
+
+  // Compare JWT Tokens
+  private compareTokens(user: UserLogin) {
+    try {
+      const userId: string = user.id.toString();
+
+      const access_token = signJwt(
+        { userId },
+        {
+          expiresIn: `${this.compareTokenExpiresIn}m`,
+        }
+      );
+
+      return access_token;
+    } catch (e) {
+      console.log(e);
+      return invalid;
+    }
+  }
   //----------------------------------------------------Public function-----------------------------------------------------------
   // Register User
   public async signUpUser({
@@ -408,7 +428,7 @@ export class UserService {
         authorizationToken: process.env.TOKENMAIL,
       });
 
-      const code = this.signTokens(user);
+      const code = this.compareTokens(user);
 
       await courier.send({
         message: {
@@ -424,6 +444,11 @@ export class UserService {
           },
         },
       });
+
+      setTimeout(async () => {
+        const data: any = await this.findById(user.id);
+        if (data.confirmation === false) await this.findByIdAndDelete(user.id);
+      }, 1000 * 60 * this.compareTokenExpiresIn);
 
       return {
         status: success,
@@ -463,6 +488,37 @@ export class UserService {
         };
       }
 
+      //verification mail
+      if (user.confirmation === false) {
+        const courier = CourierClient({
+          authorizationToken: process.env.TOKENMAIL,
+        });
+
+        const code = this.compareTokens(user);
+
+        await courier.send({
+          message: {
+            content: {
+              title: "Welcome to Dove!",
+              body: "Please verify your Dove account, use this code\n\n {{code}}  \n\nand follow the link: https://dove-client.vercel.app/confirmation",
+            },
+            data: {
+              code,
+            },
+            to: {
+              email: user.email,
+            },
+          },
+        });
+
+        return {
+          status: invalid,
+          code: 400,
+          message:
+            "Please confirmation your account, we send message in your mail",
+        };
+      }
+
       //2. Compare passwords
       const passwordHash = bcrypt.compareSync(input.password, user.password);
       if (!passwordHash) {
@@ -478,15 +534,6 @@ export class UserService {
           status: invalid,
           code: 400,
           message: "You can use your account",
-        };
-      }
-
-      //verification mail
-      if (user.confirmation === false) {
-        return {
-          status: invalid,
-          code: 400,
-          message: "Please confirmation your account",
         };
       }
 
