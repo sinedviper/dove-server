@@ -38,7 +38,7 @@ export const checkUpdateAndFormatImage = async (
       fs.unlink(filePath, (err) => {
         if (err) console.log(err.message);
       });
-      if (info.width > 1200 || info.height > 800 || info.size > 1000000) {
+      if (info.width > 1920 || info.height > 1080 || info.size > 2000000) {
         checkImageInfo = {
           status: invalid,
           code: 400,
