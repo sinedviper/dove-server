@@ -207,7 +207,7 @@ export class MessageService {
   //have message
   private async haveMessageData({
     chatId,
-    id: messgaeId,
+    id: messageId,
   }: MessageInput): Promise<string | Date> {
     try {
       //search table
@@ -215,8 +215,12 @@ export class MessageService {
 
       const message = await messageRepo
         .createQueryBuilder("message")
-        .where("message.id = :messgaeId", { messgaeId })
+        .where("message.id = :messageId", { messageId })
         .getOne();
+
+      if(!message) {
+        return invalid
+      }
 
       //find values
       const findMessage = await messageRepo
